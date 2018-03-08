@@ -20,13 +20,13 @@
 
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define('DB_NAME', 'latinafitnesscartel');
+define('DB_NAME', 'latinafi_latinafitnesscartel');
 
 /** MySQL database username */
-define('DB_USER', 'root');
+define('DB_USER', 'latinafi_root');
 
 /** MySQL database password */
-define('DB_PASSWORD', 'rootpass');
+define('DB_PASSWORD', '6WyZfrzQt.B.');
 
 /** MySQL hostname */
 define('DB_HOST', 'mysql');
