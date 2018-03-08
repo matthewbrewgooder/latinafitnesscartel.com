@@ -59,6 +59,11 @@ Tyche_Kirki::add_field( 'tyche_theme', array(
 			'#25262b',
 			'#717171',
 		),
+        'lfc'       => array(
+            '#ec248f',
+            '#25262b',
+            '#717171',
+        )
 	),
 ) );
 
