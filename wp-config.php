@@ -29,7 +29,7 @@ define('DB_USER', 'latinafi_root');
 define('DB_PASSWORD', '6WyZfrzQt.B.');
 
 /** MySQL hostname */
-define('DB_HOST', 'mysql');
+define('DB_HOST', 'localhost');
 
 /** Database Charset to use in creating database tables. */
 define('DB_CHARSET', 'utf8mb4');
