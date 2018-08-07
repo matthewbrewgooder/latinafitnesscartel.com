@@ -10,6 +10,7 @@ jQuery( function( $ ) {
         return this._frame;
 
       this._frame = wp.media( {
+        frame: 'post',
         title: 'Image',
         library: {
           type: 'image'
@@ -20,41 +21,31 @@ jQuery( function( $ ) {
         multiple: false
       } );
 
-      this._frame.on( 'open', this.updateFrame ).
-          state( 'library' ).
-          on( 'select', this.select );
+      this._frame.on( 'insert', this.select );
 
       return this._frame;
     },
 
-    select: function() {
+    select: function( selection ) {
       // Do something when the "update" button is clicked after a selection is
       // made.
-      var id = $( '.attachments' ).find( '.selected' ).attr( 'data-id' );
-      var selector = $( '.tyche-media-control' ).find( mediaControl.selector );
 
-      if ( ! selector.length ) {
-        return false;
+      var selector = $( '.tyche-media-control' ).find( mediaControl.selector );
+      var attachments = selection.toJSON();
+      var url;
+
+      if ( undefined !== attachments[0]['sizes']['medium'] ) {
+        url = attachments[0]['sizes']['medium']['url'];
+      }else if ( undefined !== attachments[0]['sizes']['thumnail'] ) {
+        url = attachments[0]['sizes']['thumnail']['url'];
+      }else{
+        url = attachments[0]['sizes']['full']['url'];
       }
 
-      selector.val( id );
-
-      var data = {
-        action: [ 'Tyche_Helper', 'get_attachment_image' ],
-        args: { attachment_id: id }
-      };
-
-      $.ajax( {
-        type: 'POST',
-        data: { action: 'tyche_ajax_action', args: data },
-        dataType: 'json',
-        url: EpsilonWPUrls.ajaxurl,
-        success: function( data ) {
-          $( mediaControl.container ).find( 'img' ).remove();
-          $( mediaControl.container ).find( 'label' ).after( data.img );
-          $( '.tyche-media-control' ).find( mediaControl.selector ).change();
-        }
-      } );
+      selector.val( attachments[0]['id'] );
+      $( mediaControl.container ).find( 'img' ).remove();
+      $( mediaControl.container ).find( 'label' ).after( '<img src="' + url + '">' );
+      selector.change();
 
     },
 

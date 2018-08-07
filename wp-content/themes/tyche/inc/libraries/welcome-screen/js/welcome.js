@@ -1,45 +1,4 @@
 var epsilonWelcomeScreenFunctions = {
-  /**
-   * Set a frontpage to static
-   */
-  frontPageToStatic: function() {
-    var action, args, container;
-    jQuery( '.epsilon-ajax-button' ).click( function() {
-      action = jQuery( this ).attr( 'data-action' ) ? jQuery( this ).attr( 'data-action' ) : jQuery( this ).attr( 'id' );
-      container = jQuery( this ).parents( '.action-required-box' );
-
-      args = {
-        action: [ 'Epsilon_Welcome_Screen', action ],
-        nonce: epsilonWelcomeScreen.ajax_nonce,
-        args: {
-          'do': action
-        }
-      };
-
-      jQuery.ajax( {
-        type: 'POST',
-        data: { action: 'welcome_screen_ajax_callback', args: args },
-        dataType: 'json',
-        url: ajaxurl,
-        success: function() {
-          container.hide( 300, function() {
-            container.remove();
-          } );
-        },
-        /**
-         * Throw errors
-         *
-         * @param jqXHR
-         * @param textStatus
-         * @param errorThrown
-         */
-        error: function( jqXHR, textStatus, errorThrown ) {
-          console.log( jqXHR + ' :: ' + textStatus + ' :: ' + errorThrown );
-        }
-
-      } );
-    } );
-  },
 
   /**
    * Dismiss action through AJAX
@@ -139,7 +98,6 @@ var epsilonWelcomeScreenFunctions = {
 jQuery( document ).ready( function() {
   epsilonWelcomeScreenFunctions.rangeSliders( jQuery( '#wpbody-content .widget-content' ) );
   epsilonWelcomeScreenFunctions.dismissAction();
-  epsilonWelcomeScreenFunctions.frontPageToStatic();
 } );
 
 jQuery( document ).ajaxStop( function() {
