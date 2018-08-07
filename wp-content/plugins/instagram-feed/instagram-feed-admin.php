@@ -33,6 +33,8 @@ function sb_instagram_settings_page() {
         'sb_instagram_user_id'              => '',
         'sb_instagram_preserve_settings'    => '',
         'sb_instagram_ajax_theme'           => false,
+        'sb_instagram_cache_time'           => 1,
+        'sb_instagram_cache_time_unit'      => 'hours',
         'sb_instagram_width'                => '100',
         'sb_instagram_width_unit'           => '%',
         'sb_instagram_feed_width_resp'      => false,
@@ -61,6 +63,12 @@ function sb_instagram_settings_page() {
         //Misc
         'sb_instagram_custom_css'           => '',
         'sb_instagram_custom_js'            => '',
+        'sb_instagram_cron'                 => 'no',
+        'check_api'         => true,
+        'sb_instagram_backup' => true,
+        'enqueue_css_in_shortcode' => false,
+        'sb_instagram_disable_mob_swipe' => false,
+        'sbi_font_method' => 'svg',
         'sb_instagram_disable_awesome'      => false
     );
     //Save defaults in an array
@@ -72,7 +80,10 @@ function sb_instagram_settings_page() {
     $sb_instagram_user_id = $options[ 'sb_instagram_user_id' ];
     $sb_instagram_preserve_settings = $options[ 'sb_instagram_preserve_settings' ];
     $sb_instagram_ajax_theme = $options[ 'sb_instagram_ajax_theme' ];
-    $sb_instagram_width = $options[ 'sb_instagram_width' ];
+	$sb_instagram_cache_time = $options[ 'sb_instagram_cache_time' ];
+	$sb_instagram_cache_time_unit = $options[ 'sb_instagram_cache_time_unit' ];
+
+	$sb_instagram_width = $options[ 'sb_instagram_width' ];
     $sb_instagram_width_unit = $options[ 'sb_instagram_width_unit' ];
     $sb_instagram_feed_width_resp = $options[ 'sb_instagram_feed_width_resp' ];
     $sb_instagram_height = $options[ 'sb_instagram_height' ];
@@ -101,7 +112,11 @@ function sb_instagram_settings_page() {
     //Misc
     $sb_instagram_custom_css = $options[ 'sb_instagram_custom_css' ];
     $sb_instagram_custom_js = $options[ 'sb_instagram_custom_js' ];
-    $sb_instagram_disable_awesome = $options[ 'sb_instagram_disable_awesome' ];
+	$sb_instagram_cron = $options[ 'sb_instagram_cron' ];
+	$check_api = $options[ 'check_api' ];
+	$sb_instagram_backup = $options[ 'sb_instagram_backup' ];
+	$sbi_font_method = $options[ 'sbi_font_method' ];
+	$sb_instagram_disable_awesome = $options[ 'sb_instagram_disable_awesome' ];
 
 
     //Check nonce before saving data
@@ -114,15 +129,52 @@ function sb_instagram_settings_page() {
             if( isset($_POST[ $sb_instagram_configure_hidden_field ]) && $_POST[ $sb_instagram_configure_hidden_field ] == 'Y' ) {
 
                 $sb_instagram_at = sanitize_text_field( $_POST[ 'sb_instagram_at' ] );
-                $sb_instagram_user_id = sanitize_text_field( $_POST[ 'sb_instagram_user_id' ] );
-
+	            $sb_instagram_user_id = array();
+	            if ( isset( $_POST[ 'sb_instagram_user_id' ] )) {
+		            if ( is_array( $_POST[ 'sb_instagram_user_id' ] ) ) {
+			            foreach( $_POST[ 'sb_instagram_user_id' ] as $user_id ) {
+				            $sb_instagram_user_id[] = sanitize_text_field( $user_id );
+			            }
+		            } else {
+			            $sb_instagram_user_id[] = sanitize_text_field( $_POST[ 'sb_instagram_user_id' ] );
+		            }
+	            }
                 isset($_POST[ 'sb_instagram_preserve_settings' ]) ? $sb_instagram_preserve_settings = sanitize_text_field( $_POST[ 'sb_instagram_preserve_settings' ] ) : $sb_instagram_preserve_settings = '';
                 isset($_POST[ 'sb_instagram_ajax_theme' ]) ? $sb_instagram_ajax_theme = sanitize_text_field( $_POST[ 'sb_instagram_ajax_theme' ] ) : $sb_instagram_ajax_theme = '';
+	            isset($_POST[ 'sb_instagram_cache_time' ]) ? $sb_instagram_cache_time = sanitize_text_field( $_POST[ 'sb_instagram_cache_time' ] ) : $sb_instagram_cache_time = '';
+	            isset($_POST[ 'sb_instagram_cache_time_unit' ]) ? $sb_instagram_cache_time_unit = sanitize_text_field( $_POST[ 'sb_instagram_cache_time_unit' ] ) : $sb_instagram_cache_time_unit = '';
 
                 $options[ 'sb_instagram_at' ] = $sb_instagram_at;
                 $options[ 'sb_instagram_user_id' ] = $sb_instagram_user_id;
                 $options[ 'sb_instagram_preserve_settings' ] = $sb_instagram_preserve_settings;
                 $options[ 'sb_instagram_ajax_theme' ] = $sb_instagram_ajax_theme;
+
+	            $options[ 'sb_instagram_cache_time' ] = $sb_instagram_cache_time;
+	            $options[ 'sb_instagram_cache_time_unit' ] = $sb_instagram_cache_time_unit;
+
+	            //Delete all SBI transients
+	            global $wpdb;
+	            $table_name = $wpdb->prefix . "options";
+	            $wpdb->query( "
+                    DELETE
+                    FROM $table_name
+                    WHERE `option_name` LIKE ('%\_transient\_sbi\_%')
+                    " );
+	            $wpdb->query( "
+                    DELETE
+                    FROM $table_name
+                    WHERE `option_name` LIKE ('%\_transient\_timeout\_sbi\_%')
+                    " );
+	            $wpdb->query( "
+			        DELETE
+			        FROM $table_name
+			        WHERE `option_name` LIKE ('%\_transient\_&sbi\_%')
+			        " );
+	            $wpdb->query( "
+			        DELETE
+			        FROM $table_name
+			        WHERE `option_name` LIKE ('%\_transient\_timeout\_&sbi\_%')
+			        " );
             } //End config tab post
 
             if( isset($_POST[ $sb_instagram_customize_hidden_field ]) && $_POST[ $sb_instagram_customize_hidden_field ] == 'Y' ) {
@@ -180,7 +232,11 @@ function sb_instagram_settings_page() {
                 //Misc
                 $sb_instagram_custom_css = $_POST[ 'sb_instagram_custom_css' ];
                 $sb_instagram_custom_js = $_POST[ 'sb_instagram_custom_js' ];
-                isset($_POST[ 'sb_instagram_disable_awesome' ]) ? $sb_instagram_disable_awesome = sanitize_text_field( $_POST[ 'sb_instagram_disable_awesome' ] ) : $sb_instagram_disable_awesome = '';
+	            if (isset($_POST[ 'sb_instagram_cron' ]) ) $sb_instagram_cron = $_POST[ 'sb_instagram_cron' ];
+	            isset($_POST[ 'check_api' ]) ? $check_api = $_POST[ 'check_api' ] : $check_api = '';
+	            isset($_POST[ 'sb_instagram_backup' ]) ? $sb_instagram_backup = $_POST[ 'sb_instagram_backup' ] : $sb_instagram_backup = '';
+	            isset($_POST[ 'sbi_font_method' ]) ? $sbi_font_method = $_POST[ 'sbi_font_method' ] : $sbi_font_method = 'svg';
+	            isset($_POST[ 'sb_instagram_disable_awesome' ]) ? $sb_instagram_disable_awesome = sanitize_text_field( $_POST[ 'sb_instagram_disable_awesome' ] ) : $sb_instagram_disable_awesome = '';
 
                 $options[ 'sb_instagram_width' ] = $sb_instagram_width;
                 $options[ 'sb_instagram_width_unit' ] = $sb_instagram_width_unit;
@@ -211,7 +267,58 @@ function sb_instagram_settings_page() {
                 //Misc
                 $options[ 'sb_instagram_custom_css' ] = $sb_instagram_custom_css;
                 $options[ 'sb_instagram_custom_js' ] = $sb_instagram_custom_js;
-                $options[ 'sb_instagram_disable_awesome' ] = $sb_instagram_disable_awesome;
+	            $options[ 'sb_instagram_cron' ] = $sb_instagram_cron;
+	            $options[ 'check_api' ] = $check_api;
+	            $options['sb_instagram_backup'] = $sb_instagram_backup;
+	            $options['sbi_font_method'] = $sbi_font_method;
+	            $options[ 'sb_instagram_disable_awesome' ] = $sb_instagram_disable_awesome;
+
+	            //clear expired tokens
+	            delete_option( 'sb_expired_tokens' );
+
+	            //Delete all SBI transients
+	            global $wpdb;
+	            $table_name = $wpdb->prefix . "options";
+	            $wpdb->query( "
+                    DELETE
+                    FROM $table_name
+                    WHERE `option_name` LIKE ('%\_transient\_sbi\_%')
+                    " );
+	            $wpdb->query( "
+                    DELETE
+                    FROM $table_name
+                    WHERE `option_name` LIKE ('%\_transient\_timeout\_sbi\_%')
+                    " );
+	            $wpdb->query( "
+			        DELETE
+			        FROM $table_name
+			        WHERE `option_name` LIKE ('%\_transient\_&sbi\_%')
+			        " );
+	            $wpdb->query( "
+			        DELETE
+			        FROM $table_name
+			        WHERE `option_name` LIKE ('%\_transient\_timeout\_&sbi\_%')
+			        " );
+
+	            if( $sb_instagram_cron == 'no' ) wp_clear_scheduled_hook('sb_instagram_cron_job');
+
+	            //Run cron when Misc settings are saved
+	            if( $sb_instagram_cron == 'yes' ){
+		            //Clear the existing cron event
+		            wp_clear_scheduled_hook('sb_instagram_cron_job');
+
+		            $sb_instagram_cache_time = $options[ 'sb_instagram_cache_time' ];
+		            $sb_instagram_cache_time_unit = $options[ 'sb_instagram_cache_time_unit' ];
+
+		            //Set the event schedule based on what the caching time is set to
+		            $sb_instagram_cron_schedule = 'hourly';
+		            if( $sb_instagram_cache_time_unit == 'hours' && $sb_instagram_cache_time > 5 ) $sb_instagram_cron_schedule = 'twicedaily';
+		            if( $sb_instagram_cache_time_unit == 'days' ) $sb_instagram_cron_schedule = 'daily';
+
+		            wp_schedule_event(time(), $sb_instagram_cron_schedule, 'sb_instagram_cron_job');
+
+		            sb_instagram_clear_page_caches();
+	            }
                 
             } //End customize tab post
             
@@ -252,16 +359,102 @@ function sb_instagram_settings_page() {
 
                     <div id="sbi_config">
                         <!-- <a href="https://instagram.com/oauth/authorize/?client_id=1654d0c81ad04754a898d89315bec227&redirect_uri=https://smashballoon.com/instagram-feed/instagram-token-plugin/?return_uri=<?php echo admin_url('admin.php?page=sb-instagram-feed'); ?>&response_type=token" class="sbi_admin_btn"><?php _e( 'Log in and get my Access Token and User ID', 'instagram-feed' ); ?></a> -->
-                        <a href="https://instagram.com/oauth/authorize/?client_id=3a81a9fa2a064751b8c31385b91cc25c&scope=basic+public_content&redirect_uri=https://smashballoon.com/instagram-feed/instagram-token-plugin/?return_uri=<?php echo admin_url('admin.php?page=sb-instagram-feed'); ?>&response_type=token" class="sbi_admin_btn"><?php _e( 'Log in and get my Access Token and User ID', 'instagram-feed' ); ?></a>
+                        <a href="https://instagram.com/oauth/authorize/?client_id=3a81a9fa2a064751b8c31385b91cc25c&scope=basic+public_content&redirect_uri=https://smashballoon.com/instagram-feed/instagram-token-plugin/?return_uri=<?php echo admin_url('admin.php?page=sb-instagram-feed'); ?>&response_type=token&state=<?php echo admin_url('admin.php?page-sb-instagram-feed'); ?>" class="sbi_admin_btn"><i class="fa fa-user-plus" aria-hidden="true" style="font-size: 20px;"></i>&nbsp; <?php _e( 'Connect an Instagram Account', 'instagram-feed' ); ?></a>
                         <a href="https://smashballoon.com/instagram-feed/token/" target="_blank" style="position: relative; top: 14px; left: 15px;"><?php _e( 'Button not working?', 'instagram-feed' ); ?></a>
                     </div>
-                    
+
+                    <!-- Old Access Token -->
+                    <input name="sb_instagram_at" id="sb_instagram_at" type="hidden" value="<?php echo esc_attr( $sb_instagram_at ); ?>" size="80" maxlength="100" placeholder="Click button above to get your Access Token" />
+
+                    <?php
+
+                    $returned_data = sbi_get_connected_accounts_data( $sb_instagram_at );
+                    $connected_accounts = $returned_data['connected_accounts'];
+                    $user_feeds_returned = isset(  $returned_data['user_ids'] ) ? $returned_data['user_ids'] : false;
+                    if ( $user_feeds_returned ) {
+	                    $user_feed_ids = $user_feeds_returned;
+                    } else {
+	                    $user_feed_ids = ! is_array( $sb_instagram_user_id ) ? explode( ',', $sb_instagram_user_id ) : $sb_instagram_user_id;
+                    }
+                    $expired_tokens = get_option( 'sb_expired_tokens', array() );
+                    $sb_instagram_type = 'user';
+                    ?>
+
                     <tr valign="top">
-                        <th scope="row"><label><?php _e( 'Access Token', 'instagram-feed' ); ?></label></th>
-                        <td>
-                            <input name="sb_instagram_at" id="sb_instagram_at" type="text" value="<?php echo esc_attr( $sb_instagram_at ); ?>" size="60" maxlength="60" placeholder="Click button above to get your Access Token" />
-                            &nbsp;<a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed'); ?></a>
-                            <p class="sbi_tooltip"><?php _e("In order to display your photos you need an Access Token from Instagram. To get yours, simply click the button above and log into Instagram. You can also use the button on <a href='https://smashballoon.com/instagram-feed/token/' target='_blank'>this page</a>.", 'instagram-feed'); ?></p>
+                        <th scope="row"><label><?php _e( 'Instagram Accounts', 'instagram-feed' ); ?></label><span style="font-weight:normal; font-style:italic; font-size: 12px; display: block;">Use the button above to connect an Instagram account</span></th>
+                        <td class="sbi_connected_accounts_wrap">
+		                    <?php if ( empty( $connected_accounts ) ) : ?>
+                                <p class="sbi_no_accounts"><?php _e( 'No Instagram accounts connected. Click the button above to connect an account.', 'instagram-feed' ); ?></p><br />
+		                    <?php else:  ?>
+			                    <?php foreach ( $connected_accounts as $account ) :
+				                    $username = $account['username'] ? $account['username'] : $account['user_id'];
+				                    $profile_picture = $account['profile_picture'] ? '<img class="sbi_ca_avatar" src="'.$account['profile_picture'].'" />' : ''; //Could add placeholder avatar image
+				                    $access_token_expired = (in_array(  $account['access_token'], $expired_tokens, true ) || in_array( sbi_maybe_clean( $account['access_token'] ), $expired_tokens, true ));
+				                    $is_invalid_class = ! $account['is_valid'] || $access_token_expired ? ' sbi_account_invalid' : '';
+				                    $in_user_feed = in_array( $account['user_id'], $user_feed_ids, true );
+				                    ?>
+                                    <div class="sbi_connected_account<?php echo $is_invalid_class; ?><?php if ( $in_user_feed ) echo ' sbi_account_active' ?>" id="sbi_connected_account_<?php esc_attr_e( $account['user_id'] ); ?>" data-accesstoken="<?php esc_attr_e( $account['access_token'] ); ?>" data-userid="<?php esc_attr_e( $account['user_id'] ); ?>" data-username="<?php esc_attr_e( $account['username'] ); ?>">
+
+                                        <div class="sbi_ca_alert">
+                                            <span><?php _e( 'The Access Token for this account is expired or invalid. Click the button above to attempt to renew it.', 'instagram-feed' ) ?></span>
+                                        </div>
+                                        <div class="sbi_ca_info">
+
+                                            <div class="sbi_ca_delete">
+                                                <a href="JavaScript:void(0);" class="sbi_delete_account"><i class="fa fa-times"></i><span class="sbi_remove_text"><?php _e( 'Remove', 'instagram-feed' ); ?></span></a>
+                                            </div>
+
+                                            <div class="sbi_ca_username">
+							                    <?php echo $profile_picture; ?>
+                                                <strong><?php echo $username; ?></strong>
+                                            </div>
+
+                                            <div class="sbi_ca_actions">
+							                    <?php if ( ! $in_user_feed ) : ?>
+                                                    <a href="JavaScript:void(0);" class="sbi_use_in_user_feed button-primary"><i class="fa fa-plus-circle" aria-hidden="true"></i><?php _e( 'Add to Primary Feed', 'instagram-feed' ); ?></a>
+							                    <?php else : ?>
+                                                    <a href="JavaScript:void(0);" class="sbi_remove_from_user_feed button-primary"><i class="fa fa-minus-circle" aria-hidden="true"></i><?php _e( 'Remove from Primary Feed', 'instagram-feed' ); ?></a>
+							                    <?php endif; ?>
+                                                <a class="sbi_ca_token_shortcode button-secondary" href="JavaScript:void(0);"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i><?php _e( 'Add to another Feed', 'instagram-feed' ); ?></a>
+                                                <p class="sbi_ca_show_token"><input type="checkbox" id="sbi_ca_show_token_<?php esc_attr_e( $account['user_id'] ); ?>" /><label for="sbi_ca_show_token_<?php esc_attr_e( $account['user_id'] ); ?>">Show Access Token</label></p>
+
+                                            </div>
+
+                                            <div class="sbi_ca_shortcode">
+
+                                                <p>Copy and paste this shortcode into your page or widget area:<br>
+								                    <?php if ( !empty( $account['username'] ) ) : ?>
+                                                        <code>[instagram-feed user="<?php echo $account['username']; ?>"]</code>
+								                    <?php else : ?>
+                                                        <code>[instagram-feed accesstoken="<?php echo $account['access_token']; ?>"]</code>
+								                    <?php endif; ?>
+                                                </p>
+
+                                                <p>To add multiple users in the same feed, simply separate them using commas:<br>
+								                    <?php if ( !empty( $account['username'] ) ) : ?>
+                                                        <code>[instagram-feed user="<?php echo $account['username']; ?>, a_second_user, a_third_user"]</code>
+								                    <?php else : ?>
+                                                        <code>[instagram-feed accesstoken="<?php echo $account['access_token']; ?>, another_access_token"]</code>
+								                    <?php endif; ?>
+
+                                                <p>Click on the <a href="?page=sb-instagram-feed&tab=display" target="_blank">Display Your Feed</a> tab to learn more about shortcodes</p>
+                                            </div>
+
+                                            <div class="sbi_ca_accesstoken">
+                                                <span class="sbi_ca_token_label">Access Token:</span><input type="text" class="sbi_ca_token" value="<?php echo $account['access_token']; ?>" readonly="readonly" onclick="this.focus();this.select()" title="To copy, click the field then press Ctrl + C (PC) or Cmd + C (Mac).">
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+			                    <?php endforeach;  ?>
+		                    <?php endif; ?>
+                            <a href="JavaScript:void(0);" class="sbi_manually_connect button-secondary"><?php _e( 'Manually Connect an Account', 'instagram-feed' ); ?></a>
+                            <div class="sbi_manually_connect_wrap">
+                                <input name="sb_manual_at" id="sb_manual_at" type="text" value="" style="margin-top: 4px; padding: 5px 9px; margin-left: 0px;" size="64" maxlength="100" placeholder="Enter a valid Instagram Access Token" />
+                                <p class="sbi_submit" style="display: inline-block;"><button name="submit" id="sbi_manual_submit" class="button button-primary">Connect This Account</button></p>
+                            </div>
                         </td>
                     </tr>
 
@@ -270,53 +463,74 @@ function sb_instagram_settings_page() {
                             Eg: type=user id=12986477
                         </code></th>
                         <td>
-                            <span>
-                                <?php $sb_instagram_type = 'user'; ?>
-                                <input type="radio" name="sb_instagram_type" id="sb_instagram_type_user" value="user" <?php if($sb_instagram_type == "user") echo "checked"; ?> />
-                                <label class="sbi_radio_label" for="sb_instagram_type_user"><?php _e( 'User ID(s):', 'instagram-feed' ); ?></label>
-                                <input name="sb_instagram_user_id" id="sb_instagram_user_id" type="text" value="<?php echo esc_attr( $sb_instagram_user_id ); ?>" size="25" />
-                                &nbsp;<a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed' ); ?></a>
-                                <p class="sbi_tooltip"><?php _e("These are the IDs of the Instagram accounts you want to display photos from. To get your ID simply click on the button above and log into Instagram.<br /><br />You can also display photos from other peoples Instagram accounts. To find their User ID you can use <a href='https://smashballoon.com/instagram-feed/find-instagram-user-id/' target='_blank'>this tool</a>. You can separate multiple IDs using commas.", 'instagram-feed'); ?></p><br />
-                            </span>
+                            <div class="sbi_row">
+                                <div class="sbi_col sbi_one">
+                                    <input type="radio" name="sb_instagram_type" id="sb_instagram_type_user" value="user" <?php if($sb_instagram_type == "user") echo "checked"; ?> />
+                                    <label class="sbi_radio_label" for="sb_instagram_type_user"><?php _e( 'User Account:', 'instagram-feed' ); ?></label>
+                                </div>
+                                <div class="sbi_col sbi_two">
+                                    <div class="sbi_user_feed_ids_wrap">
+				                        <?php foreach ( $user_feed_ids as $feed_id ) : if ( $feed_id !== '' ) :?>
+                                            <div id="sbi_user_feed_id_<?php echo $feed_id; ?>" class="sbi_user_feed_account_wrap">
 
-                            <div class="sbi_notice sbi_user_id_error">
-                                <?php _e("<p>Please be sure to enter your numeric <b>User ID</b> and not your Username. You can find your User ID by clicking the blue Instagram Login button above, or by entering your username into <a href='https://smashballoon.com/instagram-feed/find-instagram-user-id/' target='_blank'>this tool</a>.</p>", 'instagram-feed'); ?>
+						                        <?php if ( isset( $connected_accounts[ $feed_id ] ) && ! empty( $connected_accounts[ $feed_id ]['username'] ) ) : ?>
+                                                    <strong><?php echo $connected_accounts[ $feed_id ]['username']; ?></strong> <span>(<?php echo $feed_id; ?>)</span>
+                                                    <input name="sb_instagram_user_id[]" id="sb_instagram_user_id" type="hidden" value="<?php esc_attr_e( $feed_id ); ?>" />
+						                        <?php elseif ( isset( $connected_accounts[ $feed_id ] ) && ! empty( $connected_accounts[ $feed_id ]['access_token'] ) ) : ?>
+                                                    <strong><?php echo $feed_id; ?></strong>
+                                                    <input name="sb_instagram_user_id[]" id="sb_instagram_user_id" type="hidden" value="<?php esc_attr_e( $feed_id ); ?>" />
+						                        <?php endif; ?>
+
+                                            </div>
+				                        <?php endif; endforeach; ?>
+                                    </div>
+
+			                        <?php if ( empty( $user_feed_ids ) ) : ?>
+                                        <p class="sbi_no_accounts" style="margin-top: -3px; margin-right: 10px;">Connect a user account above</p>
+			                        <?php endif; ?>
+
+                                    <a class="sbi_tooltip_link" href="JavaScript:void(0);" style="margin: 0 0 10px 0; display: inline-block; height: 19px;"><?php _e("How to display User feeds"); ?></a>
+                                    <div class="sbi_tooltip"><?php _e("<p>In order to display posts from a User account, first connect an account using the button above.</p><p style='padding-top:8px;'><b>Displaying Posts from Other Instagram Accounts</b><br />Due to recent changes in the Instagram API it is no longer possible to display photos from other Instagram accounts which you do not have access to. You can only display the user feed of an account which you connect above. You can connect as many account as you like by logging in using the button above, or manually copy/pasting an Access Token by selecting the 'Manually Connect an Account' option.</p><p style='padding-top:10px;'><b>Multiple Acounts</b><br />It is only possible to display feeds from Instagram accounts which you own. In order to display feeds from multiple accounts, first connect them above and then use the buttons to add the account either to your primary feed or to another feed on your site.</p>", 'instagram-feed'); ?></div><br />
+                                </div>
+
                             </div>
                             
-                            <span class="sbi_pro sbi_row">
-                                <input disabled type="radio" name="sb_instagram_type" id="sb_instagram_type_hashtag" value="hashtag" <?php if($sb_instagram_type == "hashtag") echo "checked"; ?> />
-                                <label class="sbi_radio_label" for="sb_instagram_type_hashtag"><?php _e( 'Hashtag:', 'instagram-feed' ); ?></label>
-                                <input readonly type="text" size="25" />
-                                &nbsp;<a class="sbi_tooltip_link sbi_pro" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed' ); ?></a><span class="sbi_note"> - <a href="https://smashballoon.com/instagram-feed/" target="_blank">Upgrade to Pro to show posts by Hashtag</a></span>
-                                <p class="sbi_tooltip"><?php _e( 'Display posts from a specific hashtag instead of from a user', 'instagram-feed' ); ?></p>
-                            </span>
-
                             <div class="sbi_pro sbi_row">
-                                <input disabled type="radio" name="sb_instagram_type" id="sb_instagram_type_self_likes" value="liked" <?php if($sb_instagram_type == "liked") echo "checked"; ?> />
-                                <label class="sbi_radio_label" for="sb_instagram_type_self_likes"><?php _e( 'Liked:', 'instagram-feed' ); ?></label>
-                                <input readonly type="text" size="25" />
-                                    &nbsp;<a class="sbi_tooltip_link sbi_pro" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed' ); ?></a><span class="sbi_note"> - <a href="https://smashballoon.com/instagram-feed/" target="_blank">Upgrade to Pro to show posts that you've Liked</a></span>
-                                <p class="sbi_tooltip"><?php _e("Display posts that your user account has liked."); ?></p>
+                                <div class="sbi_col sbi_one">
+                                    <input disabled type="radio" name="sb_instagram_type" id="sb_instagram_type_hashtag" value="hashtag" <?php if($sb_instagram_type == "hashtag") echo "checked"; ?> />
+                                    <label class="sbi_radio_label" for="sb_instagram_type_hashtag"><?php _e( 'Hashtag:', 'instagram-feed' ); ?></label>
+                                </div>
+                                <div class="sbi_col sbi_two">
+                                    <input readonly type="text" size="25" />
+                            &nbsp;      <a class="sbi_tooltip_link sbi_pro" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed' ); ?></a><span class="sbi_note"> - <a href="https://smashballoon.com/instagram-feed/" target="_blank">Upgrade to Pro to show posts by Hashtag</a></span>
+                                    <p class="sbi_tooltip"><?php _e( 'Display posts from a specific hashtag instead of from a user', 'instagram-feed' ); ?></p>
+                                </div>
                             </div>
 
                             <div class="sbi_pro sbi_row">
-                                <input disabled type="radio" />
-                                <label class="sbi_radio_label"><?php _e( 'Single:', 'instagram-feed' ); ?></label>
-                                <input readonly type="text" size="25" />
+                                <div class="sbi_col sbi_one">
+                                	<input type="radio" name="sb_instagram_type" disabled="">
+                                    <label class="sbi_radio_label"><?php _e( 'Single:', 'instagram-feed' ); ?></label>
+                                </div>
+                                <div class="sbi_col sbi_two">
+
+                                    <input readonly type="text" size="25" />
                                     &nbsp;<a class="sbi_tooltip_link sbi_pro" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed' ); ?></a><span class="sbi_note"> - <a href="https://smashballoon.com/instagram-feed/" target="_blank">Upgrade to Pro to show single posts</a></span>
-                                <p class="sbi_tooltip"><?php _e("Display a feed comprised of specific single posts."); ?></p>
+                                    <p class="sbi_tooltip"><?php _e("Display a feed comprised of specific single posts."); ?></p>
+                                </div>
                             </div>
 
-                            <span class="sbi_pro sbi_row">
-                                <input disabled type="radio" name="sb_instagram_type" id="sb_instagram_type_location" value="location" <?php if($sb_instagram_type == "location") echo "checked"; ?> />
-                                <label class="sbi_radio_label" for="sb_instagram_type_location"><?php _e( 'Location:', 'instagram-feed' ); ?></label>
-                                <input readonly type="text" size="25" />
+                            <div class="sbi_pro sbi_row">
+                                <div class="sbi_col sbi_one">
+                                    <input disabled type="radio" name="sb_instagram_type" id="sb_instagram_type_location" value="location" <?php if($sb_instagram_type == "location") echo "checked"; ?> />
+                                    <label class="sbi_radio_label" for="sb_instagram_type_location"><?php _e( 'Location:', 'instagram-feed' ); ?></label>
+                                </div>
+                                <div class="sbi_col sbi_two">
+                                        <input readonly type="text" size="25" />
                                 &nbsp;<a class="sbi_tooltip_link sbi_pro" href="JavaScript:void(0);"><?php _e( 'What is this?', 'instagram-feed' ); ?></a><span class="sbi_note"> - <a href="https://smashballoon.com/instagram-feed/" target="_blank">Upgrade to Pro to show posts by Location</a></span>
                                 <p class="sbi_tooltip"><?php _e( 'Display posts from an Instagram location ID or location coordinates.', 'instagram-feed' ); ?></p>
-                            </span>
-
-                            <span class="sbi_note" style="margin: 10px 0 0 0; display: block;"><?php _e('Separate multiple IDs using commas', 'instagram-feed' ); ?></span>
-                           
+                                </div>
+                            </div>
                         </td>
                     </tr>
 
@@ -337,6 +551,20 @@ function sb_instagram_settings_page() {
                             <label for="sb_instagram_ajax_theme"><?php _e('Yes', 'instagram-feed'); ?></label>
                             <a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?', 'instagram-feed'); ?></a>
                             <p class="sbi_tooltip"><?php _e("When navigating your site, if your theme uses Ajax to load content into your pages (meaning your page doesn't refresh) then check this setting. If you're not sure then please check with the theme author.", 'instagram-feed'); ?></p>
+                        </td>
+                    </tr>
+
+                    <tr valign="top">
+                        <th scope="row"><label><?php _e('Check for new posts every'); ?></label></th>
+                        <td>
+                            <input name="sb_instagram_cache_time" type="text" value="<?php esc_attr_e( $sb_instagram_cache_time ); ?>" size="4" />
+                            <select name="sb_instagram_cache_time_unit">
+                                <option value="minutes" <?php if($sb_instagram_cache_time_unit == "minutes") echo 'selected="selected"' ?> ><?php _e('Minutes'); ?></option>
+                                <option value="hours" <?php if($sb_instagram_cache_time_unit == "hours") echo 'selected="selected"' ?> ><?php _e('Hours'); ?></option>
+                                <option value="days" <?php if($sb_instagram_cache_time_unit == "days") echo 'selected="selected"' ?> ><?php _e('Days'); ?></option>
+                            </select>
+                            <a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?'); ?></a>
+                            <p class="sbi_tooltip"><?php _e('Your Instagram posts are temporarily cached by the plugin in your WordPress database. You can choose how long the posts should be cached for. If you set the time to 1 hour then the plugin will clear the cache after that length of time and check Instagram for posts again.'); ?></p>
                         </td>
                     </tr>
                 </tbody>
@@ -1068,10 +1296,57 @@ function sb_instagram_settings_page() {
         </table>
         <table class="form-table">
             <tbody>
+            <tr valign="top">
+                <th scope="row"><label><?php _e('Cache error API recheck'); ?></label></th>
+                <td>
+                    <input type="checkbox" name="check_api" id="sb_instagram_check_api" <?php if($check_api == true) echo 'checked="checked"' ?> />
+                    <a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?'); ?></a>
+                    <p class="sbi_tooltip"><?php _e("If your site uses caching, minification, or JavaScript concatenation, this option can help prevent missing cache problems with the feed."); ?></p>
+                </td>
+            </tr>
                 <tr valign="top">
-                    <th scope="row"><label><?php _e("Disable Font Awesome", 'instagram-feed'); ?></label></th>
+                    <th><label><?php _e("Enable Backup Caching"); ?></label></th>
+                    <td class="sbi-customize-tab-opt">
+                        <input name="sb_instagram_backup" type="checkbox" id="sb_instagram_backup" <?php if($sb_instagram_backup == true) echo "checked"; ?> />
+                        <input id="sbi_clear_backups" class="button-secondary" type="submit" style="position: relative; top: -4px;" value="<?php esc_attr_e( 'Clear Backup Cache' ); ?>" />
+                        <a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?'); ?></a>
+                        <p class="sbi_tooltip"><?php _e('Every feed will save a duplicate version of itself in the database to be used if the normal cache is not available.'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="bump-left">
+                        <label for="sb_instagram_cron" class="bump-left"><?php _e("Force cache to clear on interval"); ?></label>
+                    </th>
+                    <td>
+                        <select name="sb_instagram_cron">
+                            <option value="unset" <?php if($sb_instagram_cron == "unset") echo 'selected="selected"' ?> ><?php _e(' - '); ?></option>
+                            <option value="yes" <?php if($sb_instagram_cron == "yes") echo 'selected="selected"' ?> ><?php _e('Yes'); ?></option>
+                            <option value="no" <?php if($sb_instagram_cron == "no") echo 'selected="selected"' ?> ><?php _e('No'); ?></option>
+                        </select>
+
+                        <a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?'); ?></a>
+                        <p class="sbi_tooltip"><?php _e("If you're experiencing an issue with the plugin not auto-updating then you can set this to 'Yes' to run a scheduled event behind the scenes which forces the plugin cache to clear on a regular basis and retrieve new data from Instagram."); ?></p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="form-table">
+            <tbody>
+                <tr valign="top">
+                    <th scope="row"><label><?php _e("Disable Icon Font", 'instagram-feed'); ?></label></th>
                     <td>
                         <input type="checkbox" name="sb_instagram_disable_awesome" id="sb_instagram_disable_awesome" <?php if($sb_instagram_disable_awesome == true) echo 'checked="checked"' ?> /> <?php _e( 'Yes', 'instagram-feed' ); ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="sbi_font_method"><?php _e("Icon Method"); ?></label></th>
+                    <td>
+                        <select name="sbi_font_method" id="sbi_font_method" class="default-text">
+                            <option value="svg" id="sbi-font_method" class="default-text" <?php if($sbi_font_method == 'svg') echo 'selected="selected"' ?>>SVG</option>
+                            <option value="fontfile" id="sbi-font_method" class="default-text" <?php if($sbi_font_method == 'fontfile') echo 'selected="selected"' ?>><?php _e("Font File"); ?></option>
+                        </select>
+                        <a class="sbi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?'); ?></a>
+                        <p class="sbi_tooltip"><?php _e("This plugin uses SVGs for all icons in the feed. Use this setting to switch to font icons."); ?></p>
                     </td>
                 </tr>
             </tbody>
@@ -1101,8 +1376,8 @@ function sb_instagram_settings_page() {
         <code>[instagram-feed num=9 cols=3]</code></p>
         <p><?php _e( 'You can display as many different feeds as you like, on either the same page or on different pages, by just using the shortcode options below. For example:', 'instagram-feed' ); ?><br />
         <code>[instagram-feed]</code><br />
-        <code>[instagram-feed id="ANOTHER_USER_ID"]</code><br />
-        <code>[instagram-feed id="ANOTHER_USER_ID, YET_ANOTHER_USER_ID" num=4 cols=4 showfollow=false]</code>
+        <code>[instagram-feed num=4 cols=4 showfollow=false]</code><br />
+        <code>[instagram-feed accesstoken="ANOTHER_ACCESS_TOKEN"]</code>
         </p>
         <p><?php _e("See the table below for a full list of available shortcode options:", 'instagram-feed'); ?></p>
 
@@ -1117,6 +1392,11 @@ function sb_instagram_settings_page() {
                 </tr>
 
                 <tr class="sbi_table_header"><td colspan=3><?php _e("Configure Options", 'instagram-feed'); ?></td></tr>
+                <tr>
+                    <td>accesstoken</td>
+                    <td><?php _e('Your Instagram Access Token. Separate multiple using commas.', 'instagram-feed'); ?></td>
+                    <td><code>[instagram-feed accesstoken="XXXXXXXXXX"]</code></td>
+                </tr>
                 <tr class="sbi_pro">
                     <td>type</td>
                     <td><?php _e("Display photos from a User ID (user)<br />Display posts from a Hashtag (hashtag)<br />Display posts from a Location (location)<br />Display posts from Coordinates (coordinates)", 'instagram-feed'); ?></td>
@@ -1124,7 +1404,7 @@ function sb_instagram_settings_page() {
                 </tr>
                 <tr>
                     <td>id</td>
-                    <td><?php _e('An Instagram User ID. Separate multiple IDs by commas.', 'instagram-feed'); ?></td>
+                    <td><?php _e('Your Instagram User ID. This must be the ID associated with your Access Token.', 'instagram-feed'); ?></td>
                     <td><code>[instagram-feed id="1234567"]</code></td>
                 </tr>
                 <tr class="sbi_pro">
@@ -1412,12 +1692,9 @@ function sb_instagram_settings_page() {
 
 			    <ul>
 				    <li><b>FAQs</b></li>
-				    <li>&bull;&nbsp; <?php _e( '<a href="https://smashballoon.com/instagram-feed/find-instagram-user-id/" target="_blank">How to find an Instagram User ID</a>' ); ?></li>
 				    <li>&bull;&nbsp; <?php _e( '<a href="https://smashballoon.com/my-instagram-access-token-keep-expiring/" target="_blank">My Access Token Keeps Expiring</a>' ); ?></li>
 				    <li>&bull;&nbsp; <?php _e( '<a href="https://smashballoon.com/my-photos-wont-load/" target="_blank">My Instagram Feed Won\'t Load</a>' ); ?></li>
-				    <li style="margin-top: 8px; font-size: 12px;"><a
-						    href="https://smashballoon.com/instagram-feed/support/faq/" target="_blank">See All<i
-							    class="fa fa-chevron-right" aria-hidden="true"></i></a></li>
+				    <li style="margin-top: 8px; font-size: 12px;"><a href="https://smashballoon.com/instagram-feed/support/faq/" target="_blank">See All<i class="fa fa-chevron-right" aria-hidden="true"></i></a></li>
 			    </ul>
 
 			    <ul>
@@ -1468,15 +1745,27 @@ foreach ( $plugins as $plugin_path => $plugin ) {
 
 ## PLUGIN SETTINGS: ##
 sb_instagram_plugin_type => Instagram Feed Free
-<?php 
-while (list($key, $val) = each($sbi_options)) {
-    echo "$key => $val\n";
+<?php
+foreach( $sbi_options as $key => $val ) {
+	if ( is_array( $val ) ) {
+		foreach ( $val as $item ) {
+			if ( is_array( $item ) ) {
+				foreach ( $item as $key2 => $val2 ) {
+					echo "$key2 => $val2\n";
+				}
+			} else {
+				echo "$key => $item\n";
+			}
+		}
+	} else {
+		echo "$key => $val\n";
+	}
 }
 ?>
 
 ## API RESPONSE: ##
 <?php
-$url = isset( $sbi_options['sb_instagram_at'] ) ? 'https://api.instagram.com/v1/users/self/?access_token=' . $sbi_options['sb_instagram_at'] : 'no_at';
+$url = isset( $sbi_options['sb_instagram_at'] ) ? 'https://api.instagram.com/v1/users/self/?access_token=' . sbi_maybe_clean( $sbi_options['sb_instagram_at'] ) : 'no_at';
 if ( $url !== 'no_at' ) {
     $args = array(
         'timeout' => 60,
@@ -1491,22 +1780,6 @@ if ( $url !== 'no_at' ) {
         echo 'username: ' . $data->data->username . "\n";
         echo 'posts: ' . $data->data->counts->media . "\n";
 
-        $url = 'https://api.instagram.com/v1/users/13460080?access_token=' . $sbi_options['sb_instagram_at'];
-        $args = array(
-            'timeout' => 60,
-            'sslverify' => false
-        );
-        $search_result = wp_remote_get( $url, $args );
-        $search_data = json_decode( $search_result['body'] );
-
-        if ( isset( $data->meta->code ) ) {
-            echo "\n" . 'Instagram Response' . "\n";
-            echo 'code: ' . $search_data->meta->code . "\n";
-            if ( isset( $search_data->meta->error_message ) ) {
-                echo 'error_message: ' . $search_data->meta->error_message . "\n";
-            }
-        }
-
     } else {
         echo 'No id returned' . "\n";
         echo 'code: ' . $data->meta->code . "\n";
@@ -1518,7 +1791,12 @@ if ( $url !== 'no_at' ) {
 } else {
     echo 'No Access Token';
 }?>
-        </textarea>
+
+## Invalid Tokens: ##
+<?php
+var_dump( get_option( 'sb_expired_tokens' ) );
+?>
+</textarea>
 
 <?php 
 } //End Support tab 
@@ -1680,23 +1958,249 @@ function sbi_rating_notice_html() {
 
     }
 }
+function sb_instagram_clear_page_caches() {
+	if ( isset( $GLOBALS['wp_fastest_cache'] ) && method_exists( $GLOBALS['wp_fastest_cache'], 'deleteCache' ) ){
+		/* Clear WP fastest cache*/
+		$GLOBALS['wp_fastest_cache']->deleteCache();
+	}
 
+	if ( function_exists( 'wp_cache_clear_cache' ) ) {
+		wp_cache_clear_cache();
+	}
+
+	if ( class_exists('W3_Plugin_TotalCacheAdmin') ) {
+		$plugin_totalcacheadmin = & w3_instance('W3_Plugin_TotalCacheAdmin');
+
+		$plugin_totalcacheadmin->flush_all();
+	}
+
+	if ( function_exists( 'rocket_clean_domain' ) ) {
+		rocket_clean_domain();
+	}
+
+	if ( class_exists( 'autoptimizeCache' ) ) {
+		/* Clear autoptimize */
+		autoptimizeCache::clearall();
+	}
+}
 /**
  * Called via ajax to automatically save access token and access token secret
  * retrieved with the big blue button
  */
 function sbi_auto_save_tokens() {
-    if ( current_user_can( 'edit_posts' ) ) {
-        wp_cache_delete ( 'alloptions', 'options' );
+	if ( current_user_can( 'edit_posts' ) ) {
+		wp_cache_delete ( 'alloptions', 'options' );
 
-        $options = get_option( 'sb_instagram_settings', array() );
-        $options['sb_instagram_at'] = isset( $_POST['access_token'] ) ? sanitize_text_field( $_POST['access_token'] ) : '';
+		$options = get_option( 'sb_instagram_settings', array() );
+		$new_access_token = isset( $_POST['access_token'] ) ? sanitize_text_field( $_POST['access_token'] ) : false;
+		$split_token = $new_access_token ? explode( '.', $new_access_token ) : array();
+		$new_user_id = isset( $split_token[0] ) ? $split_token[0] : '';
 
-        update_option( 'sb_instagram_settings', $options );
-    }
-    die();
+		$connected_accounts =  isset( $options['connected_accounts'] ) ? $options['connected_accounts'] : array();
+		$test_connection_data = sbi_account_data_for_token( $new_access_token );
+
+		$connected_accounts[ $new_user_id ] = array(
+			'access_token' => sbi_get_parts( $new_access_token ),
+			'user_id' => $test_connection_data['id'],
+			'username' => $test_connection_data['username'],
+			'is_valid' => $test_connection_data['is_valid'],
+			'last_checked' => $test_connection_data['last_checked'],
+			'profile_picture' => $test_connection_data['profile_picture']
+		);
+
+		$options['connected_accounts'] = $connected_accounts;
+
+		update_option( 'sb_instagram_settings', $options );
+
+		echo json_encode( $connected_accounts[ $new_user_id ] );
+	}
+	die();
 }
 add_action( 'wp_ajax_sbi_auto_save_tokens', 'sbi_auto_save_tokens' );
+
+function sbi_auto_save_id() {
+	if ( current_user_can( 'edit_posts' ) && isset( $_POST['id'] ) ) {
+		$options = get_option( 'sb_instagram_settings', array() );
+
+		$options['sb_instagram_user_id'] = array( sanitize_text_field( $_POST['id'] ) );
+
+		update_option( 'sb_instagram_settings', $options );
+	}
+	die();
+}
+add_action( 'wp_ajax_sbi_auto_save_id', 'sbi_auto_save_id' );
+
+function sbi_test_token() {
+	$access_token = isset( $_POST['access_token'] ) ? sanitize_text_field( $_POST['access_token'] ) : false;
+	$options = get_option( 'sb_instagram_settings', array() );
+	$connected_accounts =  isset( $options['connected_accounts'] ) ? $options['connected_accounts'] : array();
+
+	if ( $access_token ) {
+		wp_cache_delete ( 'alloptions', 'options' );
+
+		$split_token = explode( '.', $access_token );
+		$new_user_id = isset( $split_token[0] ) ? $split_token[0] : '';
+
+		$test_connection_data = sbi_account_data_for_token( $access_token );
+
+		if ( isset( $test_connection_data['error_message'] ) ) {
+			echo $test_connection_data['error_message'];
+		} elseif ( $test_connection_data !== false ) {
+			$username = $test_connection_data['username'] ? $test_connection_data['username'] : $connected_accounts[ $new_user_id ]['username'];
+			$user_id = $test_connection_data['id'] ? $test_connection_data['id'] : $connected_accounts[ $new_user_id ]['user_id'];
+			$profile_picture = $test_connection_data['profile_picture'] ? $test_connection_data['profile_picture'] : $connected_accounts[ $new_user_id ]['profile_picture'];
+
+			$connected_accounts[ $new_user_id ] = array(
+				'access_token' => sbi_get_parts( $access_token ),
+				'user_id' => $user_id,
+				'username' => $username,
+				'is_valid' => $test_connection_data['is_valid'],
+				'last_checked' => $test_connection_data['last_checked'],
+				'profile_picture' => $profile_picture
+			);
+
+			$options['connected_accounts'] = $connected_accounts;
+
+			update_option( 'sb_instagram_settings', $options );
+
+			$expired = get_option( 'sb_expired_tokens', array() );
+			$new_expired = array();
+			foreach ( $expired as $expired_token ) {
+                $split_token = explode( '.', $expired_token );
+				$old_user_id = isset( $split_token[0] ) ? $split_token[0] : '';
+				if ( $old_user_id !== $new_user_id ) {
+					$new_expired[] = $expired_token;
+                }
+            }
+            update_option( 'sb_expired_tokens', $new_expired );
+//Delete all SBI transients
+			global $wpdb;
+			$table_name = $wpdb->prefix . "options";
+			$wpdb->query( "
+                    DELETE
+                    FROM $table_name
+                    WHERE `option_name` LIKE ('%\_transient\_sbi\_%')
+                    " );
+			$wpdb->query( "
+                    DELETE
+                    FROM $table_name
+                    WHERE `option_name` LIKE ('%\_transient\_timeout\_sbi\_%')
+                    " );
+			$wpdb->query( "
+			        DELETE
+			        FROM $table_name
+			        WHERE `option_name` LIKE ('%\_transient\_&sbi\_%')
+			        " );
+			$wpdb->query( "
+			        DELETE
+			        FROM $table_name
+			        WHERE `option_name` LIKE ('%\_transient\_timeout\_&sbi\_%')
+			        " );
+
+			echo json_encode( $connected_accounts[ $new_user_id ] );
+		} else {
+			echo 'A successful connection could not be made. Please make sure your Access Token is valid.';
+		}
+
+	}
+
+	die();
+}
+add_action( 'wp_ajax_sbi_test_token', 'sbi_test_token' );
+
+function sbi_delete_account() {
+	$access_token = isset( $_POST['access_token'] ) ? sanitize_text_field( $_POST['access_token'] ) : false;
+	$options = get_option( 'sb_instagram_settings', array() );
+	$connected_accounts =  isset( $options['connected_accounts'] ) ? $options['connected_accounts'] : array();
+
+	if ( $access_token ) {
+		wp_cache_delete ( 'alloptions', 'options' );
+
+		$split_token = explode( '.', $access_token );
+		$new_user_id = isset( $split_token[0] ) ? $split_token[0] : '';
+
+		unset( $connected_accounts[ $new_user_id ] );
+
+		$options['connected_accounts'] = $connected_accounts;
+
+		update_option( 'sb_instagram_settings', $options );
+
+	}
+
+	die();
+}
+add_action( 'wp_ajax_sbi_delete_account', 'sbi_delete_account' );
+
+function sbi_account_data_for_token( $access_token ) {
+	$return = array(
+		'id' => false,
+		'username' => false,
+		'is_valid' => false,
+		'last_checked' => time()
+	);
+	$url = 'https://api.instagram.com/v1/users/self/?access_token=' . sbi_maybe_clean( $access_token );
+	$args = array(
+		'timeout' => 60,
+		'sslverify' => false
+	);
+	$result = wp_remote_get( $url, $args );
+
+	$data = json_decode( $result['body'] );
+
+	if ( isset( $data->data->id ) ) {
+		$return['id'] = $data->data->id;
+		$return['username'] = $data->data->username;
+		$return['is_valid'] = true;
+		$return['profile_picture'] = $data->data->profile_picture;
+
+	} elseif ( isset( $data->error_type ) && $data->error_type === 'OAuthRateLimitException' ) {
+		$return['error_message'] = 'This account\'s access token is currently over the rate limit. Try removing this access token from all feeds and wait an hour before reconnecting.';
+	} else {
+		$return = false;
+
+	}
+
+	return $return;
+}
+
+function sbi_get_connected_accounts_data( $sb_instagram_at ) {
+	$sbi_options = get_option( 'sb_instagram_settings' );
+	$return = array();
+	$return['connected_accounts'] = isset( $sbi_options['connected_accounts'] ) ? $sbi_options['connected_accounts'] : array();
+
+	if ( empty( $connected_accounts ) && ! empty( $sb_instagram_at ) ) {
+		$tokens = explode(',', $sb_instagram_at );
+		$user_ids = array();
+
+		foreach ( $tokens as $token ) {
+			$account = sbi_account_data_for_token( $token );
+			if ( isset( $account['is_valid'] ) ) {
+				$split = explode( '.', $token );
+				$return['connected_accounts'][ $split[0] ] = array(
+					'access_token' => sbi_get_parts( $token ),
+					'user_id' => $split[0],
+					'username' => '',
+					'is_valid' => true,
+					'last_checked' => time(),
+					'profile_picture' => ''
+				);
+				$user_ids[] = $split[0];
+			}
+
+		}
+
+		$sbi_options['connected_accounts'] = $return['connected_accounts'];
+		$sbi_options['sb_instagram_at'] = '';
+		$sbi_options['sb_instagram_user_id'] = $user_ids;
+
+		$return['user_ids'] = $user_ids;
+
+		update_option( 'sb_instagram_settings', $sbi_options );
+		delete_option( 'sb_expired_tokens' );
+	}
+
+	return $return;
+}
 
 // variables to define certain terms
 $transient = 'instagram_feed_rating_notice_waiting';
