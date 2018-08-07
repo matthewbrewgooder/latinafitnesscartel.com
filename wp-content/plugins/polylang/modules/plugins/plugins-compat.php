@@ -16,6 +16,7 @@ class PLL_Plugins_Compat {
 	 */
 	protected function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 0 );
+		add_action( 'after_setup_theme', array( $this, 'after_setup_theme' ) );
 
 		// WordPress Importer
 		add_action( 'init', array( $this, 'maybe_wordpress_importer' ) );
@@ -82,15 +83,8 @@ class PLL_Plugins_Compat {
 			add_action( 'pll_language_defined', array( $this->wpseo = new PLL_WPSEO(), 'init' ) );
 		}
 
-		// Cache plugins, with specific test for WP Fastest Cache which doesn't use WP_CACHE
-		if ( ( defined( 'WP_CACHE' ) && WP_CACHE ) || defined( 'WPFC_MAIN_PATH' ) ) {
+		if ( pll_is_cache_active() ) {
 			add_action( 'pll_init', array( $this->cache_compat = new PLL_Cache_Compat(), 'init' ) );
-		}
-
-		// Advanced Custom Fields Pro
-		// The function acf_get_value() is not defined in ACF 4
-		if ( class_exists( 'acf' ) && function_exists( 'acf_get_value' ) && class_exists( 'PLL_ACF' ) ) {
-			add_action( 'init', array( $this->acf = new PLL_ACF(), 'init' ) );
 		}
 
 		// Custom Post Type UI
@@ -111,6 +105,19 @@ class PLL_Plugins_Compat {
 		// Divi Builder
 		if ( ( 'Divi' === get_template() || defined( 'ET_BUILDER_PLUGIN_VERSION' ) ) && class_exists( 'PLL_Divi_Builder' ) ) {
 			$this->divi_builder = new PLL_Divi_Builder();
+		}
+	}
+
+	/**
+	 * Look for active plugins and load compatibility layer after the theme has been setup
+	 *
+	 * @since 2.3.8
+	 */
+	public function after_setup_theme() {
+		// Advanced Custom Fields Pro
+		// The function acf_get_value() is not defined in ACF 4
+		if ( class_exists( 'acf' ) && function_exists( 'acf_get_value' ) && class_exists( 'PLL_ACF' ) ) {
+			add_action( 'init', array( $this->acf = new PLL_ACF(), 'init' ) );
 		}
 	}
 
@@ -340,24 +347,26 @@ class PLL_Plugins_Compat {
 	 * @since 2.2
 	 */
 	public function dm_redirect_to_mapped_domain() {
-		// Don't redirect the main site
-		if ( is_main_site() ) {
-			return;
-		}
-
-		// Don't redirect post previews
-		if ( isset( $_GET['preview'] ) && 'true' === $_GET['preview'] ) {
-			return;
-		}
-
-		// Don't redirect theme customizer
-		if ( isset( $_POST['customize'] ) && isset( $_POST['theme'] ) && 'on' === $_POST['customize'] ) {
-			return;
-		}
-
-		// If we can't associate the requested domain to a language, redirect to the default domain
 		$options = get_option( 'polylang' );
+
+		// The language is set from the subdomain or domain name
 		if ( $options['force_lang'] > 1 ) {
+			// Don't redirect the main site
+			if ( is_main_site() ) {
+				return;
+			}
+
+			// Don't redirect post previews
+			if ( isset( $_GET['preview'] ) && 'true' === $_GET['preview'] ) {
+				return;
+			}
+
+			// Don't redirect theme customizer
+			if ( isset( $_POST['customize'] ) && isset( $_POST['theme'] ) && 'on' === $_POST['customize'] ) {
+				return;
+			}
+
+			// If we can't associate the requested domain to a language, redirect to the default domain
 			$hosts = PLL()->links_model->get_hosts();
 			$lang = array_search( $_SERVER['HTTP_HOST'], $hosts );
 
@@ -368,5 +377,8 @@ class PLL_Plugins_Compat {
 				exit;
 			}
 		}
+
+		// Otherwise rely on MU Domain Mapping
+		redirect_to_mapped_domain();
 	}
 }

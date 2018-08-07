@@ -29,8 +29,8 @@ class PLL_Frontend_Filters extends PLL_Filters {
 
 		// Filters categories and post tags by language
 		add_filter( 'terms_clauses', array( $this, 'terms_clauses' ), 10, 3 );
-		add_action( 'parse_query', array( $this, 'set_tax_query_lang' ) );
-		add_action( 'posts_selection', array( $this, 'unset_tax_query_lang' ) );
+		add_action( 'pre_get_posts', array( $this, 'set_tax_query_lang' ), 999 );
+		add_action( 'posts_selection', array( $this, 'unset_tax_query_lang' ), 0 );
 
 		// Rewrites archives links to filter them by language
 		add_filter( 'getarchives_join', array( $this, 'getarchives_join' ), 10, 2 );
@@ -132,10 +132,14 @@ class PLL_Frontend_Filters extends PLL_Filters {
 	 * @return array
 	 */
 	public function get_terms_args( $args ) {
-		if ( isset( $this->tax_query_lang ) ) {
-			$args['lang'] = $this->tax_query_lang;
+		if ( isset( $args['lang'] ) ) {
+			$lang = $args['lang'];
+		} elseif ( isset( $this->tax_query_lang ) ) {
+			$lang = $args['lang'] = empty( $this->tax_query_lang ) && ! empty( $args['slug'] ) ? $this->curlang->slug : $this->tax_query_lang;
+		} else {
+			$lang = $this->curlang->slug;
 		}
-		$lang = isset( $args['lang'] ) ? $args['lang'] : $this->curlang->slug;
+
 		$key = '_' . ( is_array( $lang ) ? implode( ',', $lang ) : $lang );
 		$args['cache_domain'] = empty( $args['cache_domain'] ) ? 'pll' . $key : $args['cache_domain'] . $key;
 		return $args;
