@@ -2,7 +2,7 @@
 Tags: bitcoin, accept bitcoin, bitcoin woocommerce, bitcoin wordpress plugin, bitcoin payments
 Requires at least: 3.0.1
 Tested up to: 4.9.1
-Stable tag: 1.4.7
+Stable tag: 1.4.8
 License: MIT
 License URI: http://opensource.org/licenses/MIT
 
@@ -69,6 +69,9 @@ Just create a new xpub for each site and add to [blockonomics wallet watcher](ht
 4. Blockonomics configuration  
 
 == Changelog ==
+
+= 1.4.8  =
+* Improved error handling when unable to generate address
 
 = 1.4.7  =
 * Made compatible for internationalization through translate.wordpress.org
