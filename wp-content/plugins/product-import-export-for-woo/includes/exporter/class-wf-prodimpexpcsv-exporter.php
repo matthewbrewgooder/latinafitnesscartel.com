@@ -33,7 +33,7 @@ class WF_ProdImpExpCsv_Exporter {
 		@ini_set('zlib.output_compression', 0);
 		@ob_clean();
 		
-
+		
 			header( 'Content-Type: text/csv; charset=UTF-8' );
 			header( 'Content-Disposition: attachment; filename=woocommerce-product-export.csv' );
 			header( 'Pragma: no-cache' );

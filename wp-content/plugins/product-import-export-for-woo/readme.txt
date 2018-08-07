@@ -1,12 +1,13 @@
-﻿=== Product Import Export for WooCommerce===
-Contributors: xadapter, mujeebur
-Donate link: 
+=== Product Import Export for WooCommerce===
+Contributors: webtoffee
+Donate link: https://www.webtoffee.com/plugins/
 Tags: woocommerce product import, woocommerce import products, woocommerce export products, export woocommerce products, import products into woocommerce
 Requires at least: 3.0.1
-Tested up to: 4.9.4
-Stable tag: 1.4.3
+Tested up to: 4.9.7
+Stable tag: 1.4.6
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
+
 
 Easily import products into WooCommerce store or export WooCommerce products from the store. Import WooCommerce Products from any CSV to WooCommerce.
 
@@ -16,10 +17,11 @@ Easily import products into WooCommerce store or export WooCommerce products fro
 
 Are you trying to import products into WooCommerce store or export WooCommerce products from the store.  This Product import export plugin allows you to import or export WooCommerce simple products ( other pproduct types such as variable products are available only in premium version). It is super simple!
 
-<ul>
-<li>Export Simple Products  in to a CSV file.</li>
-<li>Import Simple Products in CSV format in to WooCommerce Store.</li>
-</ul>
+
+&#128312; Export Simple Products  in to a CSV file.
+&#128312; Import Simple Products in CSV format in to WooCommerce Store.
+&#128312; Tested OK with WooCommerce 3.4.4.
+
 
 Highlights: WooCommerce Product Export, WooCommerce Product CSV Import Suite, WooCommerce bulk product upload, WooCommerce import products with images, import amazon products to WooCommerce, Export Products to xls. Pro Version supports both Simple and Variable products.
 
@@ -38,18 +40,18 @@ You can create the CSV from scratch or you can export the product to get the for
 Product Import Export Plugin for WooCommerce is the leading tool for Woocommerce product export and WooCommerce product import. Some of the major features are listed below
 
 <ul>
-<li>Export WooCommerce Products (Simple, Group, External and Variations) in to a CSV file.</li>
-<li>Import Products in to WooCommerce (Simple, Group, External and Variations) in CSV format in to WooComemrce Store.</li>
-<li>Export WooCommerce Products by Category.</li>
-<li>Various Filter options for exporting WooCommerce Products. </li>
-<li>Map and Transform fields while Importing WooCommerce Products.</li>
-<li>Change values while importing WooCommerce products using Evaluation Fields.</li>
-<li>Choice to Update or Skip existing imported products. </li>
-<li>WPML Supported. French and German (Deutschland) language support Out of the Box.</li>
-<li>Import/Export file from/to a remote server via FTP.</li>
-<li>Automatic scheduled Import/Export.</li>
-<li>Supports Product Reviews Export Import.</li>
-<li>Excellent Support for setting it up!</li>
+<li> &#9989; Export WooCommerce Products (Simple, Group, External and Variations) in to a CSV file.</li>
+<li> &#9989; Import Products in to WooCommerce (Simple, Group, External and Variations) in CSV format in to WooComemrce Store.</li>
+<li> &#9989; Export WooCommerce Products by Category.</li>
+<li> &#9989; Various Filter options for exporting WooCommerce Products. </li>
+<li> &#9989; Map and Transform fields while Importing WooCommerce Products.</li>
+<li> &#9989; Change values while importing WooCommerce products using Evaluation Fields.</li>
+<li> &#9989; Choice to Update or Skip existing imported products. </li>
+<li> &#9989; WPML Supported. French and German (Deutschland) language support Out of the Box.</li>
+<li> &#9989; Import/Export file from/to a remote server via FTP.</li>
+<li> &#9989; Automatic scheduled Import/Export.</li>
+<li> &#9989; Supports Product Reviews Export Import.</li>
+<li> &#9989; Excellent Support for setting it up!</li>
 </ul>
 
 Please visit <a rel="nofollow" href="https://www.xadapter.com/product/product-import-export-plugin-for-woocommerce/">Product Import Export Plugin for WooCommerce</a> for more details
@@ -63,26 +65,27 @@ WooCommerce import products & WooCommerce export products functionalities made e
 [youtube http://www.youtube.com/watch?v=L-01qI1EZWE&rel=0&showinfo=0]
 
 
-= woocommerce export products =
+= WooCommerce export products =
 There are multiple cases where one need to export WooCommerce products. It could be either for sending the details to someone else or integrating with a third-party system. For example, you can export woocommerce products as csv file in to an ftp folder on a regular basis using the cron job. This can be read by any third-party application to update its data. 
 
 Export WooCommerce Products: Export and download product data in CSV file format. Plugins supports,
 
 WooCommerce Simple Products
 WooCommerce Variable Products.
-WooCommerce Group Products.
+WooCommerce Grouped Products.
 WooCommerce External Products.
+WooCommerce Subscription Products.
 
 In addition, the plugin helps you export Categories, Tags, Products and other Product details into WooCommerce. You can export prices, descriptions, images etc apart from the custom fields (meta), taxonomies and attributes.
 
-= How to export woocommerce products =
+= How to export WooCommerce products =
 
 It is as simple as clicking a button. But if you need to customize your export we have enough advanced customization options built in to the woocommerce product export plugin.
 
 = WooCommerce Import Products =
 WooCommerce bulk product upload is one of the main use case where WooCommerce product import functionality is used. 'How to import products into woocommerce' is one of the common question people ask. Our WooCommerce product csv import suite is the perfect answer for this. With is plugin you can import products from any xml or csv to WooCommerce. This saves lot of time and minimises errors. 
 
-Woocommerce product import: You can use the import functionality to:
+WooCommerce product import: You can use the import functionality to:
 
 Import by selecting file from your computer
 Import by providing file path on the server
@@ -104,7 +107,7 @@ Export Products by Category: You can even choose desired product categories from
 Export Products by Type: You can selectively export products belonging to specific product types. All you need to do is choose the required product types from the plugin settings page while exporting.
 Merge Products: This feature is useful for adding more information to existing products, for example when your existing products get modified. To get the modified product details into your online store, you can update the current product by importing modified product CSV file.
 
-Map and Transform: You can map the fields ( WooCommerce fields ) with column headings ( CSV file header ). To map, select the required field under “Map to Column” by using drop-down list for a particular column heading. An Evaluation field is used to fix/update the required value for the particular field.
+Map and Transform: You can map the fields ( WooCommerce fields ) with column headings ( CSV file header ). To map, select the required field under "Map to Column" by using drop-down list for a particular column heading. An Evaluation field is used to fix/update the required value for the particular field.
 
 Cron Job / Scheduled Import Export: WooCommerce Product Import and Export plugin facilitates to schedule the Import and Export of the products. You can auto import the products at regular intervals from CSV which is present on FTP Server by providing starting time and intervals between import. There is an option to skip new products in scheduled import too. You can also auto export the products to FTP in a CSV file at regular intervals. There is also option to use saved mapping files for auto export.
 
@@ -141,6 +144,19 @@ Yes. You can import or export product images along with other details
 
 == Changelog ==
 
+= 1.4.6 =
+* Tested OK with WC 3.4.4
+* Bug fix:importing date.
+* Bug fix:- JSON_HEX_APOS on ajax post.
+ 
+= 1.4.5 =
+* Tested OK with WC 3.4.3
+* Image import process improved.
+= 1.4.4 =
+* Sample CSVs are updated.
+* Enhancement: Improved parsing.
+* Updates: Tested OK with WP 4.9.6 and WC 3.4.2
+* Fixed warnings.
 = 1.4.3 =
 * Updates: Interface updated.
 * Updates: Tested OK with WC 3.3.3
@@ -223,11 +239,12 @@ Yes. You can import or export product images along with other details
 * Enhancement: Improved label text for Product type, category , tags and shipping class.
 * Enhancement: Included links to Documentation and sample CSV. 
 = 1.0.0 =
-* Import /Export Woocommerce Products.
+* Import /Export WooCommerce Products.
 
 
 == Upgrade Notice ==
 
-= 1.4.3 =
-* Updates: Interface updated.
-* Updates: Tested OK with WC 3.3.3
+= 1.4.6 =
+* Tested OK with WC 3.4.4
+* Bug fix:importing date.
+* Bug fix:- JSON_HEX_APOS on ajax post.

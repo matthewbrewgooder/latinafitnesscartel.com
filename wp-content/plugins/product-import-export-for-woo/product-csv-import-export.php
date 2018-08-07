@@ -1,12 +1,14 @@
 <?php
 /*
   Plugin Name: Product CSV Import Export (BASIC)
-  Plugin URI: https://www.xadapter.com/product/product-import-export-plugin-for-woocommerce/
+  Plugin URI: https://wordpress.org/plugins/product-import-export-for-woo/
   Description: Import and Export Products From and To your WooCommerce Store.
-  Author: XAdapter
-  Author URI: https://www.xadapter.com/shop
-  Version: 1.4.3
-  WC tested up to: 3.3.3
+  Author: WebToffee
+  Author URI: https://www.webtoffee.com/product/product-import-export-woocommerce/
+  Version: 1.4.6
+  WC tested up to: 3.4.4
+  License:           GPLv3
+  License URI:       https://www.gnu.org/licenses/gpl-3.0.html
   Text Domain: wf_csv_import_export
  */
 
@@ -16,7 +18,7 @@ if (!defined('ABSPATH') || !is_admin()) {
 
 
 if (!defined('WF_PIPE_CURRENT_VERSION')) {
-    define("WF_PIPE_CURRENT_VERSION", "1.4.3");
+    define("WF_PIPE_CURRENT_VERSION", "1.4.6");
 }
 if (!defined('WF_PROD_IMP_EXP_ID')) {
     define("WF_PROD_IMP_EXP_ID", "wf_prod_imp_exp");
@@ -139,6 +141,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 $reasons = array(
                     array(
+                        'id' => 'used-it',
+                        'text' => __('Used it successfully. Don\'t need anymore.', 'wf_csv_import_export'),
+                        'type' => 'reviewhtml',
+                        'placeholder' => __('Have used it successfully and aint in need of it anymore', 'wf_csv_import_export')
+                    ),
+                    array(
                         'id' => 'could-not-understand',
                         'text' => __('I couldn\'t understand how to make it work', 'wf_csv_import_export'),
                         'type' => 'textarea',
@@ -252,17 +260,32 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         padding: 12px 20px;
                         text-align: right;
                     }
+                    .reviewlink{
+                        padding:10px 0px 0px 35px !important;
+                        font-size: 15px;
+                    }
+                    .review-and-deactivate{
+                        padding:5px;
+                    }
                 </style>
                 <script type="text/javascript">
                     (function ($) {
                         $(function () {
                             var modal = $('#pipe-pipe-modal');
                             var deactivateLink = '';
+                            
+                            
                             $('#the-list').on('click', 'a.pipe-deactivate-link', function (e) {
                                 e.preventDefault();
                                 modal.addClass('modal-active');
                                 deactivateLink = $(this).attr('href');
                                 modal.find('a.dont-bother-me').attr('href', deactivateLink).css('float', 'left');
+                            });
+                            
+                            $('#pipe-pipe-modal').on('click', 'a.review-and-deactivate', function (e) {
+                                e.preventDefault();
+                                window.open("https://wordpress.org/support/plugin/product-import-export-for-woo/reviews/#new-post");
+                                window.location.href = deactivateLink;
                             });
                             modal.on('click', 'button.pipe-model-cancel', function (e) {
                                 e.preventDefault();
@@ -272,9 +295,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 var parent = $(this).parents('li:first');
                                 modal.find('.reason-input').remove();
                                 var inputType = parent.data('type'),
-                                        inputPlaceholder = parent.data('placeholder'),
-                                        reasonInputHtml = '<div class="reason-input">' + (('text' === inputType) ? '<input type="text" class="input-text" size="40" />' : '<textarea rows="5" cols="45"></textarea>') + '</div>';
-
+                                        inputPlaceholder = parent.data('placeholder');
+                                if('reviewhtml' === inputType) {       
+                                var reasonInputHtml = '<div class="reviewlink"><a href="#" target="_blank" class="review-and-deactivate"><?php _e('Deactivate and leave a review', 'wf_csv_import_export'); ?> <span class="xa-pipe-rating-link"> &#9733;&#9733;&#9733;&#9733;&#9733; </span></a></div>';
+                            }else{
+                                var reasonInputHtml = '<div class="reason-input">' + (('text' === inputType) ? '<input type="text" class="input-text" size="40" />' : '<textarea rows="5" cols="45"></textarea>') + '</div>';
+                            }
                                 if (inputType !== '') {
                                     parent.append($(reasonInputHtml));
                                     parent.find('input, textarea').attr('placeholder', inputPlaceholder).focus();

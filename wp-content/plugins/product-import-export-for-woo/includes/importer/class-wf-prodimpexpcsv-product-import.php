@@ -154,7 +154,7 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 								var data = {
 									action: 	'woocommerce_csv_import_request',
 									file:       '<?php echo addslashes( $file ); ?>',
-									mapping:    '<?php echo json_encode( $_POST['map_from'] ); ?>',
+									mapping: 	'<?php echo json_encode($_POST['map_from'],JSON_HEX_APOS); ?>',
 									eval_field: '<?php echo stripslashes(json_encode(($_POST['eval_field']),JSON_HEX_APOS)) ?>',
 									delimiter:  '<?php echo $this->delimiter; ?>',
 									merge_empty_cells: '<?php echo $this->merge_empty_cells; ?>',
@@ -168,7 +168,7 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 									data:       data,
 									type:       'POST',
 									success:    function( response ) {
-										console.log( response );
+										//console.log( response );
 										if ( response ) {
 
 											try {
@@ -256,15 +256,15 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 								while ( ( $postmeta = fgetcsv( $handle, 0, $this->delimiter ) ) !== FALSE ) {
 									$count++;
 
-						            if ( $count >= $limit ) {
-						            	$previous_position = $position;
-										$position          = ftell( $handle );
-										$count             = 0;
-										$import_count      ++;
+                                                                    if ( $count >= $limit ) {
+                                                                        $previous_position = $position;
+                                                                                        $position          = ftell( $handle );
+                                                                                        $count             = 0;
+                                                                                        $import_count      ++;
 
-										// Import rows between $previous_position $position
-						            	?>rows.push( [ <?php echo $previous_position; ?>, <?php echo $position; ?> ] ); <?php
-						            }
+                                                                                        // Import rows between $previous_position $position
+                                                                        ?>rows.push( [ <?php echo $previous_position; ?>, <?php echo $position; ?> ] ); <?php
+                                                                    }
 		  						}
 
 		  						// Remainder
@@ -273,8 +273,8 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 		  							$import_count      ++;
 		  						}
 
-		    					fclose( $handle );
-		    				}
+                                                                fclose( $handle );
+                                                        }
 							?>
 
 							var data = rows.shift();
@@ -740,12 +740,33 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 
 	    return false;
 	}
+        
+        
+        public function wf_get_product_id_by_sku( $sku ) {
+            global $wpdb;
+
+            // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery
+            $id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT posts.ID
+                FROM $wpdb->posts AS posts
+                LEFT JOIN $wpdb->postmeta AS postmeta ON ( posts.ID = postmeta.post_id )
+                WHERE posts.post_type IN ( 'product', 'product_variation' )
+                AND posts.post_status != 'trash'
+                AND postmeta.meta_key = '_sku'
+                AND postmeta.meta_value = %s
+                LIMIT 1",
+                $sku
+                )
+            );
+
+            return (int) apply_filters( 'wf_get_product_id_by_sku', $id, $sku );
+        }
 
 	/**
 	 * Create new posts based on import information
 	 */
 	public function process_product( $post ) {
-            
 		$processing_product_id    = absint( $post['post_id'] );
 		$processing_product       = get_post( $processing_product_id );
 		$processing_product_title = $processing_product ? $processing_product->post_title : '';
@@ -774,6 +795,7 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 			return;
 		}
 		// Check if post exists when importing
+
 		if ( ! $merging ) {
 			if ( $this->product_exists( $processing_product_title, $processing_product_sku, $post['post_name'] ) ) {
                                 if(!$processing_product_id && empty($processing_product_sku)) { 
@@ -795,9 +817,39 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 				return;
 			}
 		}
+                
+                
+//		if ( ! $merging ) {
+//                    error_log('<pre>$this->wf_get_product_id_by_sku(  $processing_product_sku ):-' . print_r($this->wf_get_product_id_by_sku(  $processing_product_sku ), 1) . '</per>', 3, ABSPATH . "/wp-content/uploads/wc-logs/test-log.txt");
+//			if ( $this->wf_get_product_id_by_sku(  $processing_product_sku ) ) {
+////                                $usr_msg =  __( 'Product already exists.', 'wf_csv_import_export' );                                 
+////                                $this->add_import_result( 'skipped',$usr_msg, $processing_product_id, $processing_product_title, $processing_product_sku );
+////				$this->hf_log_data_change( 'csv-import', sprintf( __('> &#8220;%s&#8221; Product already exists.', 'wf_csv_import_export'), esc_html($processing_product_title) ), true );
+////				unset( $post );
+////				return;
+//                            
+//                                if(!$processing_product_id && empty($processing_product_sku)) { 
+//                                // if no sku , no id and  no merge + is product in db with same title -> just give message
+//                                       $usr_msg = 'Product with same title already exist.';
+//                                }else{
+//                                       $usr_msg = 'Product already exists.'; 
+//                                }
+//                                $this->add_import_result( 'skipped', __( $usr_msg, 'wf_csv_import_export' ), $processing_product_id, $processing_product_title, $processing_product_sku );
+//				$this->hf_log_data_change( 'csv-import', sprintf( __('> &#8220;%s&#8221;'.$usr_msg, 'wf_csv_import_export'), esc_html($processing_product_title) ), true );
+//				unset( $post );
+//				return;
+//			}
+//                        
+//			if ( $processing_product_id && is_string( get_post_status( $processing_product_id ) ) ) {
+//				$this->add_import_result( 'skipped', __( 'Importing post ID conflicts with an existing post ID', 'wf_csv_import_export' ), $processing_product_id, get_the_title( $processing_product_id ), '' );
+//				$this->hf_log_data_change( 'csv-import', sprintf( __('> &#8220;%s&#8221; ID already exists.', 'wf_csv_import_export'), esc_html( $processing_product_id ) ), true );
+//				unset( $post );
+//				return;
+//			}
+//		}
 		// Check post type to avoid conflicts with IDs
                 $is_post_exist_in_db = get_post_type( $processing_product_id );
-		if ( $merging && $processing_product_id && !empty($is_post_exist_in_db) && (get_post_type( $processing_product_id ) !== $post['post_type'] )) {
+		if ( $merging && $processing_product_id && !empty($is_post_exist_in_db) && ($is_post_exist_in_db !== $post['post_type'] )) {
 			$this->add_import_result( 'skipped', __( 'Post is not a product', 'wf_csv_import_export' ), $processing_product_id, $processing_product_title, $processing_product_sku );
 			$this->hf_log_data_change( 'csv-import', sprintf( __('> &#8220;%s&#8221; is not a product.', 'wf_csv_import_export'), esc_html($processing_product_id) ), true );
 			unset( $post );
@@ -884,7 +936,7 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 		} else {
                         $merging = FALSE;
 			// Get parent
-			$post_parent = $post['post_parent'];
+			$post_parent = (isset($post['post_parent'])?$post['post_parent']:'');
                         
 			if ( $post_parent !== "" ) {
 				$post_parent = absint( $post_parent );
@@ -907,23 +959,23 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 
 			// Insert product
 			$this->hf_log_data_change( 'csv-import', sprintf( __('> Inserting %s', 'wf_csv_import_export'), esc_html( $processing_product_title ) ), true );
-
-			$postdata = array(
+                        $postdata = array(
 				'import_id'      => $processing_product_id,
-				'post_author'    => $post['post_author'] ? absint( $post['post_author'] ) : get_current_user_id(),
-				'post_date'      => ( $post['post_date'] ) ? date( 'Y-m-d H:i:s', strtotime( $post['post_date'] )) : '',
-				'post_date_gmt'  => ( $post['post_date_gmt'] ) ? date( 'Y-m-d H:i:s', strtotime( $post['post_date_gmt'] )) : '',
-				'post_content'   => $post['post_content'],
-				'post_excerpt'   => $post['post_excerpt'],
+				'post_author'    => !empty($post['post_author']) ? absint($post['post_author']) : get_current_user_id(),
+                                'post_date' => !empty( $post['post_date'] ) ? date("Y-m-d H:i:s", strtotime($post['post_date'])) : '',
+                                'post_date_gmt' => ( !empty($post['post_date_gmt']) && $post['post_date_gmt'] ) ? date('Y-m-d H:i:s', strtotime($post['post_date_gmt'])) : '',
+				'post_content'   => !empty($post['post_content'])?$post['post_content']:'',
+				'post_excerpt'   => !empty($post['post_excerpt'])?$post['post_excerpt']:'',
 				'post_title'     => $processing_product_title,
-				'post_name'      => ( $post['post_name'] ) ? $post['post_name'] : sanitize_title( $processing_product_title ),
-				'post_status'    => ( $post['post_status'] ) ? $post['post_status'] : 'publish',
+				'post_name'      => !empty( $post['post_name'] ) ? $post['post_name'] : sanitize_title( $processing_product_title ),
+				'post_status'    => !empty( $post['post_status'] ) ? $post['post_status'] : 'publish',
 				'post_parent'    => $post_parent,
-				'menu_order'     => $post['menu_order'],
-				'post_type'      => $post['post_type'],
-				'post_password'  => $post['post_password'],
-				'comment_status' => $post['comment_status'],
+				'menu_order'     => !empty($post['menu_order'])?$post['menu_order']:'',
+				'post_type'      => !empty($post['post_type'])?$post['post_type']:"",
+				'post_password'  => !empty($post['post_password'])?$post['post_password']:'',
+				'comment_status' => !empty($post['comment_status'])?$post['comment_status']:'',
 			);
+
 			$post_id = wp_insert_post( $postdata, true );
 
 			if ( is_wp_error( $post_id ) ) {

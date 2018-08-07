@@ -4,7 +4,7 @@
 return array(
                 'id' => 'Product ID | Product ID',
                 'post_title' => 'Product Title | Product Title. ie Name of the product ',
-                'post_name' => 'Product Name | Unique part of the product link',
+                'post_name' => 'Product Permalink | Unique part of the product link',
                 'post_status' => 'Product Status | Product Status ( published , draft ...)',
                 'post_content' => 'Product Description | Description about the Product',
                 'post_excerpt' => 'Product Short Description | Short description about the Product',

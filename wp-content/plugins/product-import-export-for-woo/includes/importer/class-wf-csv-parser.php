@@ -229,7 +229,7 @@ class WF_CSV_Parser {
 
 					}
 				}
-				$product['merging'] = true;
+				
 			}
 		}
 
@@ -279,51 +279,29 @@ class WF_CSV_Parser {
 		}
 
 		// Handle special meta fields
-		if ( isset($item['post_parent']) ) {
-
-			// price
-			if ( $merging ) {
-				if ( ! isset( $postmeta['regular_price'] ) )
-					$postmeta['regular_price'] = get_post_meta( $post_id, '_regular_price', true );
-                                        $postmeta['regular_price'] = $this->hf_currency_formatter($postmeta['regular_price']);
-				if ( ! isset( $postmeta['sale_price'] ) )
-					$postmeta['sale_price'] = get_post_meta( $post_id, '_sale_price', true );
-                                        $postmeta['sale_price'] = $this->hf_currency_formatter($postmeta['sale_price']);
-			}
-
-			if ( isset( $postmeta['regular_price'] ) && isset( $postmeta['sale_price'] ) && $postmeta['sale_price'] !== '' ) {
-                                $postmeta['sale_price'] = $this->hf_currency_formatter($postmeta['sale_price']);
+                // price
+		if ( $merging ) {
+			if ( ! isset( $postmeta['regular_price'] ) )
+				$postmeta['regular_price'] = get_post_meta( $post_id, '_regular_price', true );
                                 $postmeta['regular_price'] = $this->hf_currency_formatter($postmeta['regular_price']);
-				$price = min( $postmeta['sale_price'], $postmeta['regular_price']);
-				$postmeta['price'] = $price;
-			} elseif ( isset( $postmeta['regular_price'] ) ) {
-				$postmeta['price'] = $this->hf_currency_formatter($postmeta['regular_price']);
-			}
-
-		} else {
-
-			// price
-			if ( $merging ) {
-				if ( ! isset( $postmeta['regular_price'] ) )
-					$postmeta['regular_price'] = get_post_meta( $post_id, '_regular_price', true );
-                                        $postmeta['regular_price'] =  $this->hf_currency_formatter($postmeta['regular_price']);
-				if ( ! isset( $postmeta['sale_price'] ) )
-					$postmeta['sale_price'] = get_post_meta( $post_id, '_sale_price', true );
-                                        $postmeta['sale_price'] = $this->hf_currency_formatter($postmeta['sale_price']);
-			}
-
-			if ( isset( $postmeta['regular_price'] ) && isset( $postmeta['sale_price'] ) && $postmeta['sale_price'] !== '' ) {
+			if ( ! isset( $postmeta['sale_price'] ) )
+				$postmeta['sale_price'] = get_post_meta( $post_id, '_sale_price', true );
                                 $postmeta['sale_price'] = $this->hf_currency_formatter($postmeta['sale_price']);
-                                $postmeta['regular_price'] = $this->hf_currency_formatter($postmeta['regular_price']);
-				$price = min( $postmeta['sale_price'], $postmeta['regular_price']);
-				$postmeta['price'] = $price;
-			} elseif ( isset( $postmeta['regular_price'] ) ) {
-				$postmeta['price'] = $this->hf_currency_formatter($postmeta['regular_price']);
-			}
-
-			// Reset dynamically generated meta
-			$postmeta['min_variation_price'] = $postmeta['max_variation_price']	= $postmeta['min_variation_regular_price'] =$postmeta['max_variation_regular_price'] = $postmeta['min_variation_sale_price'] = $postmeta['max_variation_sale_price'] = '';
 		}
+
+		if ( isset( $postmeta['regular_price'] ) && isset( $postmeta['sale_price'] ) && $postmeta['sale_price'] !== '' ) {
+                        $postmeta['sale_price'] = $this->hf_currency_formatter($postmeta['sale_price']);
+                        $postmeta['regular_price'] = $this->hf_currency_formatter($postmeta['regular_price']);
+			$price = min( $postmeta['sale_price'], $postmeta['regular_price']);
+			$postmeta['price'] = $price;
+		} elseif ( isset( $postmeta['regular_price'] ) ) {
+        		$postmeta['price'] = $this->hf_currency_formatter($postmeta['regular_price']);
+		}
+
+                // Reset dynamically generated meta        
+		if ( !isset($item['post_parent']) ) {                
+			$postmeta['min_variation_price'] = $postmeta['max_variation_price']	= $postmeta['min_variation_regular_price'] =$postmeta['max_variation_regular_price'] = $postmeta['min_variation_sale_price'] = $postmeta['max_variation_sale_price'] = '';
+		} 
 
 		// upsells
 		if ( isset( $postmeta['upsell_ids'] ) && ! is_array( $postmeta['upsell_ids'] ) ) {
@@ -864,7 +842,7 @@ class WF_CSV_Parser {
 		$product['sku']        = ( ! empty( $item['sku'] ) ) ? $item['sku'] : '';
 		$product['post_title'] = ( ! empty( $item['post_title'] ) ) ? $item['post_title'] : '';
                 $product['post_type'] = $this->post_type;
-		unset( $item, $terms_array, $postmeta, $attributes, $gpf_data, $images );
+		unset( $item, $terms_array, $postmeta, $attributes, $gpf_data, $images );                               
 		return $product;
 	}
         public function hf_currency_formatter($price){
