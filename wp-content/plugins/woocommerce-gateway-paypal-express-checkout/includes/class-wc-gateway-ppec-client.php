@@ -227,8 +227,8 @@ class WC_Gateway_PPEC_Client {
 	 * @param array $args {
 	 *     Context args to retrieve SetExpressCheckout parameters.
 	 *
-	 *     @type string $start_from               Start from 'cart' or 'checkout'.
-	 *     @type int    $order_id                 Order ID if $start_from is 'checkout'.
+	 *     @type string $skip_checkout            Whether checking out ahead of store checkout screen.
+	 *     @type int    $order_id                 Order ID if checking out after order is created.
 	 *     @type bool   $create_billing_agreement Whether billing agreement creation
 	 *                                            is needed after returned from PayPal.
 	 * }
@@ -239,7 +239,7 @@ class WC_Gateway_PPEC_Client {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'start_from'               => 'cart',
+				'skip_checkout'            => true,
 				'order_id'                 => '',
 				'create_billing_agreement' => false,
 			)
@@ -261,7 +261,8 @@ class WC_Gateway_PPEC_Client {
 			$params['USERSELECTEDFUNDINGSOURCE'] = 'Finance';
 		}
 
-		if ( 'checkout' === $args['start_from'] ) {
+		if ( ! $args['skip_checkout'] ) {
+			// Display shipping address sent from checkout page, rather than selecting from addresses on file with PayPal.
 			$params['ADDROVERRIDE'] = '1';
 		}
 
@@ -288,13 +289,10 @@ class WC_Gateway_PPEC_Client {
 		$params['PAYMENTREQUEST_0_INVNUM']       = '';
 		$params['PAYMENTREQUEST_0_CURRENCYCODE'] = get_woocommerce_currency();
 
-		switch ( $args['start_from'] ) {
-			case 'checkout':
-				$details = $this->_get_details_from_order( $args['order_id'] );
-				break;
-			case 'cart':
-				$details = $this->_get_details_from_cart();
-				break;
+		if ( ! empty( $args['order_id'] ) ) {
+			$details = $this->_get_details_from_order( $args['order_id'] );
+		} else {
+			$details = $this->_get_details_from_cart();
 		}
 
 		$params = array_merge(
@@ -327,7 +325,7 @@ class WC_Gateway_PPEC_Client {
 			foreach ( $details['items'] as $line_item_key => $values ) {
 				$line_item_params = array(
 					'L_PAYMENTREQUEST_0_NAME' . $count => $values['name'],
-					'L_PAYMENTREQUEST_0_DESC' . $count => ! empty( $values['description'] ) ? strip_tags( $values['description'] ) : '',
+					'L_PAYMENTREQUEST_0_DESC' . $count => ! empty( $values['description'] ) ? substr( strip_tags( $values['description'] ), 0, 127 ) : '',
 					'L_PAYMENTREQUEST_0_QTY' . $count  => $values['quantity'],
 					'L_PAYMENTREQUEST_0_AMT' . $count  => $values['amount'],
 				);
@@ -350,8 +348,6 @@ class WC_Gateway_PPEC_Client {
 	 * @param array $context_args {
 	 *     Context args to retrieve SetExpressCheckout parameters.
 	 *
-	 *     @type string $start_from               Start from 'cart' or 'checkout'.
-	 *     @type int    $order_id                 Order ID if $start_from is 'checkout'.
 	 *     @type bool   $create_billing_agreement Whether billing agreement creation
 	 *                                            is needed after returned from PayPal.
 	 * }
@@ -464,6 +460,7 @@ class WC_Gateway_PPEC_Client {
 			'order_tax'         => round( WC()->cart->tax_total + WC()->cart->shipping_tax_total, $decimals ),
 			'shipping'          => round( WC()->cart->shipping_total, $decimals ),
 			'items'             => $this->_get_paypal_line_items_from_cart(),
+			'shipping_address'  => $this->_get_address_from_customer(),
 		);
 
 		return $this->get_details( $details, $discounts, $rounded_total, WC()->cart->total );
@@ -696,6 +693,51 @@ class WC_Gateway_PPEC_Client {
 		$details['shipping_address'] = $shipping_address;
 
 		return $details;
+	}
+
+	/**
+	 * Get PayPal shipping address from customer.
+	 *
+	 * @return array Address
+	 */
+	protected function _get_address_from_customer() {
+		$customer = WC()->customer;
+
+		$shipping_address = new PayPal_Address;
+
+		$old_wc = version_compare( WC_VERSION, '3.0', '<' );
+
+		if ( $customer->get_shipping_address() || $customer->get_shipping_address_2() ) {
+			$shipping_first_name = $old_wc ? '' : $customer->get_shipping_first_name();
+			$shipping_last_name  = $old_wc ? '' : $customer->get_shipping_last_name();
+			$shipping_address_1  = $customer->get_shipping_address();
+			$shipping_address_2  = $customer->get_shipping_address_2();
+			$shipping_city       = $customer->get_shipping_city();
+			$shipping_state      = $customer->get_shipping_state();
+			$shipping_postcode   = $customer->get_shipping_postcode();
+			$shipping_country    = $customer->get_shipping_country();
+		} else {
+			// Fallback to billing in case no shipping methods are set. The address returned from PayPal
+			// will be stored in the order as billing.
+			$shipping_first_name = $old_wc ? ''                         : $customer->get_billing_first_name();
+			$shipping_last_name  = $old_wc ? ''                         : $customer->get_billing_last_name();
+			$shipping_address_1  = $old_wc ? $customer->get_address()   : $customer->get_billing_address_1();
+			$shipping_address_2  = $old_wc ? $customer->get_address_2() : $customer->get_billing_address_2();
+			$shipping_city       = $old_wc ? $customer->get_city()      : $customer->get_billing_city();
+			$shipping_state      = $old_wc ? $customer->get_state()     : $customer->get_billing_state();
+			$shipping_postcode   = $old_wc ? $customer->get_postcode()  : $customer->get_billing_postcode();
+			$shipping_country    = $old_wc ? $customer->get_country()   : $customer->get_billing_country();
+		}
+
+		$shipping_address->setName( $shipping_first_name . ' ' . $shipping_last_name );
+		$shipping_address->setStreet1( $shipping_address_1 );
+		$shipping_address->setStreet2( $shipping_address_2 );
+		$shipping_address->setCity( $shipping_city );
+		$shipping_address->setState( $shipping_state );
+		$shipping_address->setZip( $shipping_postcode );
+		$shipping_address->setCountry( $shipping_country );
+
+		return $shipping_address;
 	}
 
 	/**
