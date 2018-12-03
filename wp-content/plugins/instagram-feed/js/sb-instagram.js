@@ -374,6 +374,7 @@ if(!sbi_js_exists){
                         var $loadBtn = $self.find("#sbi_load .sbi_load_btn"),
                             num = parseInt(sbiSettings.num),
                             cols = parseInt(sbiSettings.cols),
+                            colsmobile = 'auto',
                             feedOptions = sbiSettings.feedOptions,
                             itemCount = 0,
                             imgRes = sbiSettings.imgRes,
@@ -386,6 +387,8 @@ if(!sbi_js_exists){
                             headerprimarycolor = feedOptions.headerprimarycolor,
                             headersecondarycolor = feedOptions.headersecondarycolor,
                             media = feedOptions.media;
+
+                        $loadBtn.find('.sbi_loader').css('background-color', $loadBtn.css('color'));
 
                         //On first load imagesArr is empty so set it to be the images
                         if(imagesArr == ''){
@@ -494,12 +497,17 @@ if(!sbi_js_exists){
                                 case 'low_resolution':
                                     data_image = item.images.low_resolution.url;
                                     break;
-                                case 'custom':
-                                    data_image = item.images.standard_resolution.url.replace('640x640/',imgRes.width+'x'+imgRes.width+'/');
-                                    break;
-                                case 'autocustom':
-                                    var thisImageReplace = sbiGetBestResolutionForCustom(imgRes.width,item.images.standard_resolution.width,item.images.standard_resolution.height)
-                                    data_image = item.images.standard_resolution.url.replace('640x640/',thisImageReplace+'x'+thisImageReplace+'/');
+                                case 'auto':
+                                    imgRes = sbiGetResolutionSettings($self, var_this.getAttribute('data-res'), cols, colsmobile, $i);
+                                    var thisImageReplace = sbiGetBestResolutionForAuto(imgRes.width,item.images.standard_resolution.width,item.images.standard_resolution.height,($self.hasClass('sbi_highlight')));
+                                    switch (thisImageReplace) {
+                                        case 320:
+                                            data_image = item.images.low_resolution.url;
+                                            break;
+                                        case 150:
+                                            data_image = item.images.thumbnail.url;
+                                            break;
+                                    }
                                     break;
                             }
                             data_image = data_image.split("?ig_cache_key")[0];
@@ -520,9 +528,9 @@ if(!sbi_js_exists){
                             var playBtnHtml = item.type === 'video' || videoIsFirstCarouselItemClass ? '<i class="fa fa-play sbi_playbtn"></i>' : '';
 
                             //TEMPLATE:
-                            imagesHTML += '<div class="sbi_item sbi_type_'+item.type+' sbi_new" id="sbi_'+item.id+'" data-date="'+created_time_raw+'">' +
-                                    '<div class="sbi_photo_wrap">'+carouselTypeIcon+playBtnHtml +
-                                        '<a class="sbi_photo" href="'+item.link+'" target="_blank">' +
+                            imagesHTML += '<div class="sbi_item sbi_type_'+item.type+' sbi_new sbi_transition" id="sbi_'+item.id+'" data-date="'+created_time_raw+'">' +
+                                    '<div class="sbi_photo_wrap">'+
+                                        '<a class="sbi_photo" href="'+item.link+'" target="_blank" data-full-res="'+item.images.standard_resolution.url+'">' + carouselTypeIcon + playBtnHtml +
                                         '<img src="'+data_image+'" alt="'+captionText.replace(/<>/g, " ")+'" width="200" height="200" />' +
                                         '</a>' +
                                     '</div>' +
@@ -554,15 +562,32 @@ if(!sbi_js_exists){
                             //Add the images to the feed
                             $self.find('#sbi_images').append(imagesHTML);
                             sbiAfterImagesLoaded(imagesArr,sbiTransientNames.feed);
+                            //Loop through items and remove class to reveal them
+                            var time = 10;
+                            $self.find('.sbi_transition').each(function() {
+                                var $sbi_item_transition_el = jQuery(this);
+
+                                setTimeout( function(){
+                                    $sbi_item_transition_el.removeClass('sbi_transition');
+                                }, time)
+                                time += 10;
+                            });
 
                             imagesHTML = '';
 
                             //Remove the initial loader
-                            $self.find('.sbi_loader').remove();
+                            $self.find('#sbi_images > .sbi_loader').remove();
 
-                            //Hide the spinner in the load more button
-                            $loadBtn.find('.fa-spinner').hide();
-                            $loadBtn.find('.sbi_btn_text').css('opacity', 1);
+                            //Show the Load More button
+                            $self.find('#sbi_load').removeClass('sbi_hidden');
+                            //Don't show the button if there aren't enough photos to fill the feed
+                            if( imagesArrCount >= num ) $self.find('.sbi_load_btn').show();
+
+                            setTimeout(function(){
+                                //Hide the loader in the load more button
+                                $loadBtn.find('.sbi_loader').addClass('sbi_hidden');
+                                $loadBtn.find('.sbi_btn_text').removeClass('sbi_hidden');
+                            }, 500);
                         }
 
 
@@ -621,8 +646,8 @@ if(!sbi_js_exists){
                             //Load More button
                             $self.find('#sbi_load .sbi_load_btn').off().on('click', function(){
 
-                                $loadBtn.find('.fa-spinner').show();
-                                $loadBtn.find('.sbi_btn_text').css('opacity', 0);
+                                jQuery(this).find('.sbi_loader').removeClass('sbi_hidden');
+                                jQuery(this).find('.sbi_btn_text').addClass('sbi_hidden');
                                 //Reset the photosAvailable var so it can be used again
                                 photosAvailable = 0;
 
@@ -701,15 +726,16 @@ if(!sbi_js_exists){
                                         var $sbiSelf = jQuery(this),
                                             $i = jQuery(this).attr('data-sbi-index');
                                         sbiSizeSVG($sbiSelf);
-                                        if ($sbiSelf.attr('data-res') ==='autocustom') {
+
+                                        if ($sbiSelf.attr('data-res') ==='auto') {
                                             var oldRes = window.sbiFeedMeta[$i].minRes;
-                                            var imageSize = sbiGetResolutionSettings($sbiSelf, 'autocustom', cols, colsmobile, $i),
+                                            var imageSize = sbiGetResolutionSettings($sbiSelf, 'auto', cols, colsmobile, $i),
                                                 width = imageSize.width !== '' ? imageSize.width : sbiGetWidthForResType(imageSize.type);
 
                                             if (sbiNeedToRaiseRes(width,oldRes)) {
                                                 window.sbiFeedMeta[$i].minRes = 640;
                                                 $sbiSelf.find('.sbi_item').each(function() {
-                                                    var newUrl = jQuery(this).find('.sbi_link_area').length ? jQuery(this).find('.sbi_link_area').attr('href') : '';
+                                                    var newUrl = jQuery(this).find('.sbi_photo').attr('data-full-res');
                                                     var oldUrl = jQuery(this).find('.sbi_photo img').attr('src'),
                                                         newRes = 640,
                                                         $photo = jQuery(this);
@@ -741,8 +767,9 @@ if(!sbi_js_exists){
                                     var sbi_num_cols = sbiGetColumnCount($self, parseInt(cols), parseInt(cols));
 
                                     //Figure out what the width should be using the number of cols
-                                    var sbi_photo_width_manual = ( $self.find('#sbi_images').width() / sbi_num_cols ) - (imagepadding*2);
-
+                                    //Figure out what the width should be using the number of cols
+                                    var imagesPadding = jQuery('#sbi_images').innerWidth() - jQuery('#sbi_images').width(),
+                                        sbi_photo_width_manual = ( $self.find('#sbi_images').width() / sbi_num_cols ) - imagesPadding;
                                     //If the width is less than it should be then set it manually
                                     if( sbi_photo_width <= (sbi_photo_width_manual) ) sbi_photo_width = sbi_photo_width_manual;
 
@@ -849,9 +876,9 @@ if(!sbi_js_exists){
 
                         //Header profile pic hover
                         $self.find('.sb_instagram_header .sbi_header_link').hover(function(){
-                            $self.find('.sb_instagram_header .sbi_header_img_hover').fadeIn(200);
+                            $self.find('.sb_instagram_header .sbi_header_img_hover').addClass('sbi_fade_in');
                         }, function(){
-                            $self.find('.sb_instagram_header .sbi_header_img_hover').stop().fadeOut(600);
+                            $self.find('.sb_instagram_header .sbi_header_img_hover').removeClass('sbi_fade_in');
                         });
 
                         sbSVGify($self.find('.sb_instagram_header'));
@@ -1298,11 +1325,16 @@ if(!sbi_js_exists){
         }
     }
 
-    function sbiGetBestResolutionForCustom(colWidth,imageWidth,imageHeight) {
+    function sbiGetBestResolutionForAuto(colWidth,imageWidth,imageHeight,isHighlight) {
+
         var aspectRatio = Math.max(1,imageWidth/imageHeight),
             bestWidth = colWidth*aspectRatio,
             bestWidthRounded = Math.ceil(bestWidth / 10) * 10,
-            customSizes = [30,40,50,60,80,90,100,120,130,150,160,180,190,200,240,270,280,320,350,360,390,480,540,600,640,720,750,800,810,960,1280];;
+            customSizes = [150,320,640];
+
+        if (isHighlight) {
+            bestWidthRounded = bestWidthRounded*2;
+        }
 
         if (customSizes.indexOf(parseInt(bestWidthRounded)) === -1) {
             var done = false;
@@ -1323,98 +1355,38 @@ if(!sbi_js_exists){
     }
 
     function sbiGetResolutionSettings($self, imgRes, cols, colsmobile, $i) {
-        var feedWidth = $self.innerWidth(),
-            //colWidth = $self.innerWidth() / cols,
-            photoPadding = parseInt($self.find('#sbi_images').css('padding')) * 2,
+        var photoPadding = parseInt(($self.find('#sbi_images').outerWidth() - $self.find('#sbi_images').width())) / 2,
             cols = sbiGetColumnCount($self, parseInt(cols), parseInt(colsmobile)),
             colWidth = ($self.innerWidth() / cols) - photoPadding,
             imgResReturn = {
                 'type'  : 'low_resolution',
                 'width' : ''
-            },
-            customSizes = [30,40,50,60,80,90,100,120,130,150,160,180,190,200,240,270,280,320,350,360,390,480,540,600,640,720,750,800,810,960,1280];
-        if (!isNaN(imgRes)) {
-            imgResReturn.type = 'custom';
-            if (customSizes.indexOf(parseInt(imgRes)) > -1) {
-                imgResReturn.width = imgRes;
-            } else {
-                var done = false;
-                jQuery.each(customSizes,function(index,item) {
-                    if (item > parseInt(imgRes) && !done) {
-                        imgResReturn.width = item;
-                        done = true;
-                    }
-                });
-            }
-        } else {
-            switch(imgRes) {
-                case 'auto':
-                    colWidth = feedWidth/cols;
-                    //Check if page width is less than 640. If it is then use the script above
-                    var sbiWindowWidth = jQuery(window).width();
-                    if( sbiWindowWidth < 640 && $self.is('.sbi_mob_col_auto') ){
-                        //Need this for mobile so that image res is right on mobile, as the number of cols isn't always accurate on mobile as they are changed using CSS
-                        if( feedWidth < 640 && $self.is('.sbi_col_1') ) colWidth = 480; //Use full size images - this is for carousel as it's always set to sbi_col_1
-                        if( feedWidth < 640 && $self.is('.sbi_col_3, .sbi_col_4, .sbi_col_5, .sbi_col_6') ) colWidth = 300; //Use medium images
-                        if( feedWidth < 640 && $self.is('.sbi_col_7, .sbi_col_8, .sbi_col_9, .sbi_col_10') ) colWidth = 100; //Use thumbnail images
-                        if( (feedWidth > 320 && feedWidth < 480) && sbiWindowWidth < 480 ) colWidth = 480; //Use full size images
-                        if( feedWidth < 320 && sbiWindowWidth < 480 ) colWidth = 300; //Use medium size images
-                    }
+            };
 
-                    if( colWidth < 150 ){
-                        imgResReturn.type = 'thumbnail';
-                    } else if( colWidth < 320 ){
-                        imgResReturn.type = 'low_resolution';
-                    } else {
-                        imgResReturn.type = 'standard_resolution';
-                    }
+        switch(imgRes) {
+            case 'auto':
+                imgResReturn.type = 'auto';
+                imgResReturn.width = colWidth;
 
-                    break;
-                case 'autocustom':
-                    //var imageSize = Math.ceil(colWidth / 10) * 10;
-
-                    if (colWidth > 960) {
-                        imgResReturn.type = 'custom';
-                        imgResReturn.width = 1280;
-                    } else if((colWidth > 130 && colWidth <= 150)
-                        || (colWidth > 280 && colWidth <= 320)
-                        || (colWidth > 600 && colWidth <= 640) ) {
-
-                        if( colWidth < 150 ){
-                            imgResReturn.type = 'thumbnail';
-                            imgResReturn.width = 150;
-                        } else if( colWidth <= 320 ){
-                            imgResReturn.type = 'low_resolution';
-                            imgResReturn.width = 320;
-                        } else {
-                            imgResReturn.type = 'standard_resolution';
-                            imgResReturn.width = 640;
-                        }
-
-                    } else {
-                        imgResReturn.type = 'autocustom';
-                        imgResReturn.width = colWidth;
-                    }
-
-                    break;
-                case 'thumb':
-                    imgResReturn.type = 'thumbnail';
-                    break;
-                case 'medium':
-                    imgResReturn.type = 'low_resolution';
-                    break;
-                default:
-                    // do custom sizes if set
-                    imgResReturn.type = 'standard_resolution';
-            }
+                break;
+            case 'thumb':
+                imgResReturn.type = 'thumbnail';
+                break;
+            case 'medium':
+                imgResReturn.type = 'low_resolution';
+                break;
+            default:
+                // do custom sizes if set
+                imgResReturn.type = 'standard_resolution';
         }
 
         if ( typeof window.sbiFeedMeta[$i].minRes === 'undefined' ) {
-            window.sbiFeedMeta[$i].minRes = imgResReturn.type === 'autocustom' ? sbiGetBestResolutionForCustom(colWidth,imgResReturn.width,imgResReturn.width): sbiGetWidthForResType(imgResReturn.type);
+            window.sbiFeedMeta[$i].minRes = imgResReturn.type === 'auto' ? sbiGetBestResolutionForAuto(colWidth,imgResReturn.width,imgResReturn.width,$self.hasClass('sbi_highlight')): sbiGetWidthForResType(imgResReturn.type);
         }
 
         return imgResReturn;
     }
+
     // Called at the very end of the feed creation process
     // Takes all of the data retrieved from the API during the feed creation process and caches it
     function sbi_cache_all(imagesArr,transientName) {
