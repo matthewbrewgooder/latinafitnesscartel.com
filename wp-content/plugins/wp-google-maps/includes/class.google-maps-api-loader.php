@@ -28,11 +28,10 @@ class GoogleMapsAPILoader
 			GoogleMapsAPILoader::$settings = (array)$wpgmza->settings;
 		}
 		
-		if(!$this->isIncludeAllowed($status))
-		{
-			echo "<script>var wpgmza_google_api_status = " . json_encode($status) . "</script>";
-			return '';
-		}
+		$include_allowed = $this->isIncludeAllowed($status);
+		$isAllowed = $this->isIncludeAllowed($status);
+		
+		echo "<script>var wpgmza_google_api_status = " . json_encode($status) . "</script>";
 	}
 	
 	public static function _createInstance()
@@ -114,6 +113,9 @@ class GoogleMapsAPILoader
 		if(GoogleMapsAPILoader::$googleAPILoadCalled)
 			return;
 		
+		if(!$this->isIncludeAllowed())
+			return;
+		
 		$params = $this->getGoogleMapsAPIParams();
 		
 		$suffix = $params['suffix'];
@@ -140,6 +142,9 @@ class GoogleMapsAPILoader
 	
 	public function enqueueGoogleMaps()
 	{
+		if(!$this->isIncludeAllowed())
+			return;
+		
 		wp_enqueue_script('wpgmza_api_call');
 	}
 	
@@ -205,7 +210,6 @@ class GoogleMapsAPILoader
 		}
 		
 		if(!is_admin() && 
-			!empty($settings['wpgmza_gdpr_enabled']) &&
 			!empty($settings['wpgmza_gdpr_require_consent_before_load']) && 
 			!isset($_COOKIE['wpgmza-api-consent-given']))
 		{

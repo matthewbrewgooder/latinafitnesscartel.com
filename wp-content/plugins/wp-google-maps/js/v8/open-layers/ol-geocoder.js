@@ -34,6 +34,9 @@
 				query: address
 			},
 			success: function(response, xhr, status) {
+				// Legacy compatibility support
+				response.lng = response.lon;
+				
 				callback(response);
 			}
 		});
@@ -128,6 +131,9 @@
 						lat: parseFloat(response[i].lat),
 						lng: parseFloat(response[i].lon)
 					};
+					
+					// Backward compatibility
+					response[i].lng = response[i].lon;
 				}
 				
 				callback(response, status);

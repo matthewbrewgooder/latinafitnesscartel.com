@@ -275,6 +275,9 @@
 	 */
 	WPGMZA.GoogleMap.prototype.setZoom = function(value)
 	{
+		if(isNaN(value))
+			throw new Error("Value must not be NaN");
+		
 		return this.googleMap.setZoom(value);
 	}
 	

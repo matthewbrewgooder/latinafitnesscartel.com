@@ -60,6 +60,13 @@
             "wpgmza"
         ]
     },
+    "wpgmza-google-api-error-handler": {
+        "src": "js\/v8\/google-api-error-handler.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
     "wpgmza-info-window": {
         "src": "js\/v8\/info-window.js",
         "pro": false,
@@ -160,6 +167,13 @@
     },
     "wpgmza-version": {
         "src": "js\/v8\/version.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
+    "wpgmza-google-ui-compatibility": {
+        "src": "js\/v8\/compatibility\/google-ui-compatibility.js",
         "pro": false,
         "dependencies": [
             "wpgmza"

@@ -387,7 +387,10 @@ class ScriptLoader
 		
 		// Give the core script library dependencies
 		$dependencies = array_keys($libraries);
-		$dependencies[] = 'wpgmza_api_call';
+		
+		$apiLoader = new GoogleMapsAPILoader();
+		if($apiLoader->isIncludeAllowed())
+			$dependencies[] = 'wpgmza_api_call';
 		
 		$this->scripts['wpgmza']->dependencies = $dependencies;
 		

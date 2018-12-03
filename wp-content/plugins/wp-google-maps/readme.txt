@@ -3,7 +3,7 @@ Contributors: WPGMaps, NickDuncan, CodeCabin_, DylanAuty, PerryRylance
 Donate link: http://www.wpgmaps.com
 Tags: google maps, maps, map, map markers, google map, google maps plugin, wp google maps, wp google map, map plugin, directions, google map plugin, map widget
 Requires at least: 3.5
-Tested up to: 4.9.7
+Tested up to: 4.9.8
 Requires PHP: 5.3
 Stable tag: trunk
 License: GPLv2
@@ -215,6 +215,56 @@ We no longer support timthumb and we have opted to remove it from WP Google Maps
 Please upgrade your version of WP Google Maps to version 6.0.27 as it includes multiple security improvements.
 
 == Changelog ==
+
+= 7.10.32 :- 2018-08-31 :- Medium priority =
+* Fixed redundant setting wpgmza_gdpr_enabled causing "user consent not given" to be flagged erroneously
+
+= 7.10.31 :- 2018-08-30 :- Medium priority =
+* Fixed NaN zoom level causing Google Maps to hang
+
+= 7.10.30 :- 2018-08-29 :- Medium priority
+* Fixed "Access to undeclared static property" on some PHP versions
+* Fixed google-maps-api-error-dialog.html.php does not exist
+
+= 7.10.29 :- 2018-08-28 :- Medium priority =
+* Improved return_polygon_array function making edit polygon page more robust
+* Improved GoogleAPIErrorHandler, modal dialog with documentation links is now shown back end and front end for administrators
+* Implemented setOptions for generic marker module and WPGMZA.GoogleMarker module
+* Added load_textdomain_mofile to fix translation issues
+* Added event storelocatorgeocodecomplete (native) and storelocatorgeocodecomplete.wpgmza
+* Added event storelocatorresult (native) and storelocatorresult.wpgmza
+* Fixed map controls not applied without toggling developer mode
+* Fixed white border around new Google logo
+* Fixed Google API handling change blocking infowindow creation
+* Fixed some global settings not respected (zoom controls, etc.)
+* Fixed can't change wpgmza_maps_engine in WPGMZA_OTHER_SETTINGS when engine is set
+* Removed suffixed .wpgmza events being explicitly dispatched, WPGMZA.EventDispatcher now dispatches these automatically
+
+= 7.10.28 :- 2018-08-20 :- Low priority =
+* Fixed engine being switched to OpenLayers following saving settings on a fresh install
+* Added CSS fix for recent Google UI changes for MacOS / iOS + Safari
+
+= 7.10.27 :- 2018-08-17 :- Low priority =
+* Added wpgmza_xml_cache_generated filter
+* Added wpgmza_xml_cache_saved action
+* Improved return_polyline_array function making edit polyline page more robust
+* Fixed Google API loading before consent given when "Require consent before load" checked
+
+= 7.10.26 :- 2018-08-15 :- Low priority =
+* Improved Google API error handling back end, module issues more comprehensive alerts
+* GoogleAPIErrorHandler moved to /js/v8/google-api-error-handler.js
+* Added CSS fix for recent Google UI changes (Buttons in triplicate)
+
+= 7.10.25 :- 2018-08-10 :- Low priority =
+* Fixed "Undefined variable" notice
+
+= 7.10.24 :- 2018-07-31 :- Low Priority =
+* Added regex callback for class autoloader for installations where token_get_all is not available
+* Added spatial function prefix to spatial data migration function
+* Added lat and lng properties to GoogleGeocoder result (for Pro 5 & UGM compatibility)
+* Altered Map module to deserialize other_settings and merge into the map settings object
+* Altered parent:: to \Exception:: in CSS selector parser
+* Fixed version detection for MySQL 8
 
 = 7.10.23 :- 2018-07-23 :- Medium priority =
 * Fixed REST API endpoint URL incorrect for installations in subfolders
