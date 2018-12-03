@@ -2,7 +2,7 @@
 Tags: bitcoin, accept bitcoin, bitcoin woocommerce, bitcoin wordpress plugin, bitcoin payments
 Requires at least: 3.0.1
 Tested up to: 4.9.1
-Stable tag: 1.4.8
+Stable tag: 1.5.1
 License: MIT
 License URI: http://opensource.org/licenses/MIT
 
@@ -10,39 +10,43 @@ Accept bitcoin payments and altcoins on your WooCommerce website. Bitcoin paymen
 
 == Description ==
 
-The fastest and easiest way to start accepting Bitcoin payments on your Woocommerce online store. Since 2015, Blockonomics has helped thousands of ecommerce sites increase sales by including Bitcoin, Ethereum, Litecoin, and other major altcoins as a payment option for their customers.
+The fastest and easiest way to start accepting Bitcoin payments on your Woocommerce online store. Since 2015, [Blockonomics](https://www.blockonomics.co/merchants?utm_source=wordpress) has helped thousands of ecommerce sites increase sales by including Bitcoin, Ethereum, Litecoin, and other major altcoins as a payment option for their customers.
 
-= Blockonomics helps merchants sell more =
-- Accept Bitcoin payments on your website with ease
-- Safe and secure transactions
-- No need for exchanges and middle men - coins go directly into your wallet
+= A truly decentralized bitcoin payment processor for wordpress =
+
+Blockonomics is the only Bitcoin payment gateway that enables full decentralization in the e-commerce industry. Purchases made to your website are instantly sent to your wallet, rather than to a payment gateway’s wallet. This not only saves you fees when taking your coins out, but it allows you to take ownership of your revenue without the need for a middle man. Never lose revenue from payment gateway wallet hacks - **be your own bank**!
+
+
+= Accept bitcoin payments, fast & easy =
+- Payments are received **directly into your wallet**
+- **No approvals** of API key/documentation required
+- **Safe and secure** transactions
+- Installation only takes **five minutes** - [Video Tutorial](https://youtu.be/Kck3a-9nh6E) 
 - Eliminate chargebacks and fraud
+- **World-class** customer support team
 
+= Built for bitcoin merchants =
+- Accept BTC and other major cryptocurrencies on your website like ETH, XRP, BCH,
+LTC etc. using our built-in Shapeshift integration
+- **Segwit compatibility** enables the lowest transaction fees possible
+- All major HD wallets, such as Trezor, Ledger Nano S, Blockchain.info, and
+Mycelium, are supported
+- Supports **all major fiat currencies**
+- Complete checkout process happens within your website/theme
 
-= Plugin features =
-- Accept BTC and major altcoins on your website like ETH, XRP, BCH, LTC etc. using inbuilt shapeshift integration
-- All major HD wallets like trezor, blockchain.info, mycelium supported
-- No approvals of API key/documentation required
-- Supports all major fiat currencies
-- Complete checkout process happens within your website/theme 
-- Quick and easy installation - [Installation Video Tutorial](https://www.youtube.com/watch?v=E5nvTeuorE4)
 
 == Installation ==
-
-- [Installation Video Tutorial](https://www.youtube.com/watch?v=E5nvTeuorE4)
+  
+= Tutorials =
+- [Video Tutorial](https://youtu.be/Kck3a-9nh6E)
 - [Blog Tutorial](https://blog.blockonomics.co/how-to-accept-bitcoin-payments-on-woocommerce-using-blockonomics-f18661819a62)
+- For quick help, ping us on [Telegram Channel](https://t.me/BlockonomicsCo)
 
-= Blockonomics Setup =
-- Complete [blockonomics merchant wizard](https://www.blockonomics.co/merchants) 
-- Get API key from Wallet Watcher > Settings
-
-= Woocommerce Setup =
-- Make sure you have [woocommerce](https://wordpress.org/plugins/woocommerce/) plugin installed on your wordpress site
-- Install plugin from [wordpress plugin directory](https://wordpress.org/plugins/blockonomics-bitcoin-payments/)
-- Activate the plugin
-- You should be able see Blockonomics submenu inside Settings.  
-- Put Blockonomics API key here
-- Copy callback url and put into blockonomics [merchants](https://www.blockonomics.co/merchants)
+= Setup Instructions =
+- Click on **Get Started For Free** on [Blockonomics > Merchants](https://www.blockonomics.co/merchants) and proceed to complete merchant wizard.
+- Your API key should be now shown on the [merchants page](https://www.blockonomics.co/merchants)  
+- In Wordpress Admin > Settings > Blockonomics, paste this API Key and Save Settings
+- Click on **Test Setup** button to verify installation 
 
 Try checkout product , and you will see pay with bitcoin option.
 Use bitcoin to pay and enjoy !
@@ -69,6 +73,19 @@ Just create a new xpub for each site and add to [blockonomics wallet watcher](ht
 4. Blockonomics configuration  
 
 == Changelog ==
+
+= 1.5.1  =
+* Test Setup is more intelligent
+* Fixed typos in README
+
+= 1.5.0  =
+* Better Test Setup Diagnostics
+* Updated description/links to tutorials
+
+= 1.4.9  =
+* Faster and easier installation process having Test Setup feature
+* Showing QR code for bech32 addresses 
+* Showing Bitcoin Address for all orders
 
 = 1.4.8  =
 * Improved error handling when unable to generate address
