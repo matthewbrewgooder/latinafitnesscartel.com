@@ -96,17 +96,17 @@
     },
     {
         "name": "weglot/weglot-php",
-        "version": "0.5.11",
-        "version_normalized": "0.5.11.0",
+        "version": "0.5.12",
+        "version_normalized": "0.5.12.0",
         "source": {
             "type": "git",
             "url": "https://github.com/weglot/weglot-php.git",
-            "reference": "7f2df77f2eb195f8554606555732bb8836f04407"
+            "reference": "d85ec3719d658c893e568dec90fa01f805b70cd5"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/weglot/weglot-php/zipball/7f2df77f2eb195f8554606555732bb8836f04407",
-            "reference": "7f2df77f2eb195f8554606555732bb8836f04407",
+            "url": "https://api.github.com/repos/weglot/weglot-php/zipball/d85ec3719d658c893e568dec90fa01f805b70cd5",
+            "reference": "d85ec3719d658c893e568dec90fa01f805b70cd5",
             "shasum": ""
         },
         "require": {
@@ -118,7 +118,7 @@
             "codeception/codeception": "^2.4",
             "vlucas/phpdotenv": "^2.4"
         },
-        "time": "2018-07-31T15:23:07+00:00",
+        "time": "2018-09-19T12:33:26+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

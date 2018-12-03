@@ -42,8 +42,8 @@ $options_available = [
 ];
 
 ?>
-<style id="weglot-css-inline"></style>
 <style id="weglot-css-flag-css"></style>
+<style id="weglot-css-inline"></style>
 <h3>
 	<?php echo esc_html__( 'Language button design', 'weglot' ) . ' ' . esc_html__( '(Optional)', 'weglot' ); ?>
 </h3>

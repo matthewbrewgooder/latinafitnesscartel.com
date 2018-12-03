@@ -44,14 +44,14 @@ class User_Api_Service_Weglot {
 		}
 
 		if ( null === $api_key ) {
-			$api_key = weglot_get_api_key();
+			$api_key = \weglot_get_api_key();
 		}
 
 		try {
 			$results   = $this->do_request( self::API_BASE_OLD . 'user-info?api_key=' . $api_key, null );
-			$json      = json_decode( $results, true );
-			if ( json_last_error() !== JSON_ERROR_NONE ) {
-				throw new \Exception( 'Unknown error with Weglot Api (0001) : ' . json_last_error() );
+			$json      = \json_decode( $results, true );
+			if ( \json_last_error() !== JSON_ERROR_NONE ) {
+				throw new \Exception( 'Unknown error with Weglot Api (0001) : ' . \json_last_error() );
 			}
 
 			if ( isset( $json['succeeded'] ) && ( 0 === $json['succeeded'] || 1 === $json['succeeded'] ) ) {
@@ -109,7 +109,7 @@ class User_Api_Service_Weglot {
 	public function do_request( $url, $parameters ) {
 		if ( $parameters ) {
 			$payload = json_encode( $parameters ); //phpcs:ignore
-			if ( json_last_error() === JSON_ERROR_NONE ) {
+			if ( \json_last_error() === JSON_ERROR_NONE ) {
 				$response = wp_remote_post(
 					$url,
 					array(
@@ -126,7 +126,7 @@ class User_Api_Service_Weglot {
 					)
 				);
 			} else {
-				throw new \Exception( 'Cannot json encode parameters: ' . json_last_error() );
+				throw new \Exception( 'Cannot json encode parameters: ' . \json_last_error() );
 			}
 		} else {
 			$response = wp_remote_get( //phpcs:ignore

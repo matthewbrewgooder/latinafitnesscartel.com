@@ -66,9 +66,14 @@ class Other_Translate_Service_Weglot {
 
 		foreach ( $object->getInputWords() as $key => $input_word ) {
 			$from_input = Helper_Json_Inline_Weglot::unformat_from_api( $input_word->getWord() );
-			$to_output  = Helper_Json_Inline_Weglot::unformat_from_api( $object->getOutputWords()[ $key ]->getWord() );
 
-			$from_input = preg_quote($from_input); // To avoid special char like | to be interpreted as regex.
+			$output_unformat_from_api = apply_filters( 'weglot_other_words_unformat_from_api', true );
+			$to_output                = $object->getOutputWords()[ $key ]->getWord();
+			if ( $output_unformat_from_api ) {
+				$to_output  = Helper_Json_Inline_Weglot::unformat_from_api( $object->getOutputWords()[ $key ]->getWord() );
+			}
+
+			$from_input = preg_quote( $from_input ); // To avoid special char like | to be interpreted as regex.
 			if ( ! preg_match( "#<[^>\"']*" . $from_input . "[^>\"']*>#", $content ) ) {
 				$content = preg_replace( "#\b$from_input\b#", $to_output, $content );
 			}

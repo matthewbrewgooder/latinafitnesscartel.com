@@ -51,7 +51,7 @@ class Front_Enqueue_Weglot implements Hooks_Interface_Weglot {
 		wp_register_style( 'weglot-css', WEGLOT_URL_DIST . '/css/front-css.css', false, WEGLOT_VERSION, false );
 		wp_enqueue_style( 'weglot-css' );
 
-		wp_add_inline_style( 'weglot-css', $this->option_services->get_css_custom_inline() );
 		wp_add_inline_style( 'weglot-css', $this->option_services->get_flag_css() );
+		wp_add_inline_style( 'weglot-css', $this->option_services->get_css_custom_inline() );
 	}
 }

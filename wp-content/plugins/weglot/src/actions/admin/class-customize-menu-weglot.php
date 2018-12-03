@@ -42,6 +42,8 @@ class Customize_Menu_Weglot implements Hooks_Interface_Weglot {
 		add_filter( 'nav_menu_link_attributes', [ $this, 'add_nav_menu_link_attributes' ], 10, 2 );
 		add_filter( 'nav_menu_css_class', [ $this, 'add_nav_menu_css_class' ], 10, 2 );
 
+		add_filter( 'megamenu_nav_menu_css_class', [ $this, 'add_nav_menu_css_class' ], 10, 2 );
+
 		if ( $this->option_services->get_option( 'is_menu' ) ) {
 			add_filter( 'wp_nav_menu_items', [ $this, 'weglot_fallback_menu' ] );
 		}

@@ -25,6 +25,8 @@ if ( version_compare( phpversion(), '5.4', '<' ) ) {
 	$php_min_54 = false;
 }
 
+$options = weglot_get_options();
+
 ?>
 
 
@@ -130,12 +132,17 @@ if ( version_compare( phpversion(), '5.4', '<' ) ) {
 				</tr>
 				<tr>
 					 <td><?php esc_html_e( 'Exclude URLs', 'weglot' ); ?></td>
-					 <td><?php echo esc_attr( get_option( 'exclude_url' ) ); ?></td>
+					 <td><?php echo esc_attr( implode( $options[ 'exclude_urls' ], ' - ' ) ); ?></td>
 				</tr>
 				<tr>
 					 <td><?php esc_html_e( 'Exclude Blocks', 'weglot' ); ?></td>
-					 <td><?php echo esc_attr( get_option( 'exclude_blocks' ) ); ?></td>
+					 <td><?php echo esc_attr( implode( $options[ 'exclude_blocks' ], ' - ' ) ); ?></td>
 				</tr>
 		  </tbody>
 	 </table>
+	 <br />
+	<div class="widefat">
+		<h2><?php esc_html_e( 'Custom URLS', 'weglot'); ?></h2>
+		<?php var_export($options['custom_urls']); ?>
+	</div>
 </div>

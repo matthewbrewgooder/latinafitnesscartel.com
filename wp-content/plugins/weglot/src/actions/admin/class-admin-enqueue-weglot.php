@@ -35,6 +35,22 @@ class Admin_Enqueue_Weglot implements Hooks_Interface_Weglot {
 	 */
 	public function hooks() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'weglot_admin_enqueue_scripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'weglot_admin_enqueue_scripts_metaboxes' ] );
+	}
+
+	/**
+	 * @since 2.1.0
+	 *
+	 * @return void
+	 * @param mixed $page
+	 */
+	public function weglot_admin_enqueue_scripts_metaboxes( $page ) {
+		if ( ! in_array( $page, [ 'post.php' ] ) ) { //phpcs:ignore
+			return;
+		}
+
+		wp_enqueue_script( 'weglot-admin-metaboxes-js', WEGLOT_URL_DIST . '/metaboxes-js.js', [ 'jquery' ] );
+		wp_enqueue_style( 'weglot-admin-css', WEGLOT_URL_DIST . '/css/admin-css.css', [], WEGLOT_VERSION );
 	}
 
 

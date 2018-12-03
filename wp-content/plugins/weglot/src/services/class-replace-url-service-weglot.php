@@ -47,9 +47,13 @@ class Replace_Url_Service_Weglot {
 				continue;
 			}
 
-			if ( self::check_link( $current_url, $sometags, $sometags2 ) ) {
-				$function_name = 'replace_' . $type;
+			if ( !$this->check_link( $current_url, $sometags, $sometags2 ) ) {
+				continue;
+			}
 
+			$function_name = apply_filters( 'weglot_modify_link_replace_function', 'replace_' . $type, $type );
+
+			if ( method_exists( $this->replace_link_service, $function_name ) ) {
 				$translated_page = $this->replace_link_service->$function_name(
 					$translated_page,
 					$current_url,
@@ -58,6 +62,10 @@ class Replace_Url_Service_Weglot {
 					$sometags,
 					$sometags2
 				);
+			} else {
+				if ( function_exists( $function_name ) ) {
+					$translated_page = $function_name( $translated_page, $current_url, $quote1, $quote2, $sometags, $sometags2 );
+				}
 			}
 		}
 

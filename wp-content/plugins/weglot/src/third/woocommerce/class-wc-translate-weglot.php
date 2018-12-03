@@ -62,6 +62,10 @@ class WC_Translate_Weglot {
 
 		preg_match_all( '#(label|placeholder)\\\":\\\"(.*?)\\\"#', $match[1], $all );
 
+		if ( empty( $all[2] ) ) {
+			return $content;
+		}
+
 		$object = $this->translate_entries( $all[2] );
 
 		foreach ( $object->getInputWords() as $key => $input_word ) {
@@ -89,6 +93,10 @@ class WC_Translate_Weglot {
 		}
 
 		preg_match_all( '#i18n_view_cart\":\"(.*?)\"#', $match[1], $all );
+
+		if ( empty( $all[1] ) ) {
+			return $content;
+		}
 
 		$object = $this->translate_entries( $all[1] );
 

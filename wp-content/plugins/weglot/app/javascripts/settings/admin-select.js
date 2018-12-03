@@ -87,16 +87,35 @@ const init_admin_select = function(){
 		let work_original_language = $("#original_language").val()
 
 		$("#original_language").on("change", function (e) {
+			const old_original_language = work_original_language;
 			const new_destination_option = work_original_language;
 			work_original_language = e.target.value;
-
 			destination_selectize[0].selectize.removeOption(work_original_language);
 
 			const new_option = weglot_languages.available.find(itm => {
 				return itm.code === new_destination_option
 			});
 
+			const new_original_option = weglot_languages.available.find(itm => {
+				return itm.code === work_original_language;
+			});
+
 			destination_selectize[0].selectize.addOption(new_option);
+
+
+			const is_fullname = $("#is_fullname").is(":checked")
+			const with_name = $("#with_name").is(":checked")
+			let label = ''
+			if(with_name){
+				label = is_fullname ? new_original_option.local : new_original_option.code.toUpperCase();
+			}
+
+			$(".wgcurrent.wg-li")
+				.removeClass(old_original_language)
+				.addClass(work_original_language)
+				.attr("data-code-language", work_original_language)
+				.find('span').html(label)
+
 
 		});
 

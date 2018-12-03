@@ -113,7 +113,7 @@ class Request_Url_Service_Weglot {
 	 * @return boolean
 	 */
 	public function is_translatable_url() {
-		return $this->get_weglot_url()->isTranslable();
+		return $this->get_weglot_url()->isTranslable() && $this->is_eligible_url( $this->get_full_url() );
 	}
 
 
@@ -184,7 +184,6 @@ class Request_Url_Service_Weglot {
 	 */
 	public function is_eligible_url( $url ) {
 		$url = urldecode( $this->url_to_relative( $url ) );
-
 		//Format exclude URL
 		$exclude_urls_option = weglot_get_exclude_urls();
 
@@ -212,11 +211,25 @@ class Request_Url_Service_Weglot {
 			$list_regex[] = $this->amp_services->get_regex();
 		}
 
+		$path_without_language = array_filter( explode( '/', $url ), 'strlen' );
+		$index_entries         = count( $path_without_language );
+		$custom_urls           = $this->option_services->get_option( 'custom_urls' );
+		$current_language      = $this->get_current_language();
+
+		$url_path_custom = null;
+		if ( ! empty( $custom_urls ) && isset( $custom_urls[ $current_language ] ) && isset( $path_without_language[ $index_entries ] ) && isset( $custom_urls[ $current_language ][ $path_without_language[ $index_entries ] ] ) ) {
+			$url_path_custom = '/' . $custom_urls[ $current_language ][ $path_without_language[ $index_entries ] ] . '/';
+		}
+
 		foreach ( $list_regex as $regex ) {
 			$str           = $this->escape_slash( $regex );
 			$prepare_regex = sprintf( '/%s/', $str );
 
 			if ( preg_match( $prepare_regex, $url ) === 1 ) {
+				return apply_filters( 'weglot_is_eligible_url', false, $url );
+			}
+
+			if ( null !== $url_path_custom && preg_match( $prepare_regex, $url_path_custom ) === 1 ) {
 				return apply_filters( 'weglot_is_eligible_url', false, $url );
 			}
 		}

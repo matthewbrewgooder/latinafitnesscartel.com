@@ -73,6 +73,7 @@ abstract class Context_Weglot {
 			'\WeglotWP\Actions\Migration_Weglot',
 			'\WeglotWP\Third\Woocommerce\WC_Filter_Urls_Weglot',
 			'\WeglotWP\Third\Amp\Amp_Enqueue_Weglot',
+			'\WeglotWP\Actions\Admin\Metabox_Url_Translate_Weglot',
 		];
 
 		self::$context->set_actions( $actions );
@@ -95,6 +96,10 @@ function weglot_init() {
 
 	if ( ! function_exists( 'curl_version' )) {
 		add_action( 'admin_notices', [ '\WeglotWP\Notices\Curl_Weglot', 'admin_notice' ] );
+	}
+
+	if ( ! function_exists( 'json_last_error' )) {
+		add_action( 'admin_notices', [ '\WeglotWP\Notices\Json_Function_Weglot', 'admin_notice' ] );
 	}
 
 	load_plugin_textdomain( 'weglot', false, WEGLOT_DIR_LANGUAGES );

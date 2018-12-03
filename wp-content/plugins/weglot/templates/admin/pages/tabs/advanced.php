@@ -34,6 +34,11 @@ $options_available = [
 		'label'       => __( 'Translate AMP', 'weglot' ),
 		'description' => __( 'Translate AMP page', 'weglot' ),
 	],
+	'private_mode' => [
+		'key'         => 'private_mode',
+		'label'       => __( 'Private mode', 'weglot' ),
+		'description' => __( 'Only admin users can be view translation', 'weglot' ),
+	],
 ];
 
 ?>
@@ -158,6 +163,22 @@ $options_available = [
 					<?php checked( $this->options[ $options_available['translate_amp']['key'] ], 1 ); ?>
 				>
 				<p class="description"><?php echo esc_html( $options_available['translate_amp']['description'] ); ?></p>
+			</td>
+		</tr>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label for="<?php echo esc_attr( $options_available['private_mode']['key'] ); ?>">
+					<?php echo esc_html( $options_available['private_mode']['label'] ); ?>
+				</label>
+			</th>
+			<td class="forminp forminp-text">
+				<input
+					name="<?php echo esc_attr( sprintf( '%s[%s]', WEGLOT_SLUG, $options_available['private_mode']['key'] ) ); ?>"
+					id="<?php echo esc_attr( $options_available['private_mode']['key'] ); ?>"
+					type="checkbox"
+					<?php checked( $this->options[ $options_available['private_mode']['key'] ], 1 ); ?>
+				>
+				<p class="description"><?php echo esc_html( $options_available['private_mode']['description'] ); ?></p>
 			</td>
 		</tr>
 	</tbody>

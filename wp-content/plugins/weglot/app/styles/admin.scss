@@ -11,6 +11,30 @@
 	}
 }
 
+.weglot_text_error {
+	color:red;
+}
+
+.weglot_reset{
+	text-decoration: underline;
+	font-style: italic;
+	&:hover{
+		cursor: pointer;
+	}
+}
+
+.weglot_custom_url{
+	border-bottom: 1px solid #ccc;
+	margin-bottom: 10px;
+	a{
+		margin: 5px 0px;
+		display: inline-block;
+	}
+	&--text_link{
+		margin-bottom: 4px;
+	}
+}
+
 .btn{
 	background:$primary;
 	display: inline-block;

@@ -19,7 +19,7 @@ abstract class Helper_Json_Inline_Weglot {
 	 */
 	public static function format_for_api( $string ) {
 		$string = '"' . $string . '"';
-		return json_decode( str_replace( '\\/', '/', str_replace( '\\\\', '\\', $string ) ) );
+		return \json_decode( str_replace( '\\/', '/', str_replace( '\\\\', '\\', $string ) ) );
 	}
 
 	/**
@@ -28,7 +28,7 @@ abstract class Helper_Json_Inline_Weglot {
 	 * @return string
 	 */
 	public static function unformat_from_api( $string ) {
-		$string = str_replace( '"', '', str_replace( '/', '\\\\/', str_replace( '\\u', '\\\\u', json_encode( $string ) ) ) ); //phpcs:ignore
+		$string = str_replace( '"', '', str_replace( '/', '\\\\/', str_replace( '\\u', '\\\\u', \json_encode( $string ) ) ) ); //phpcs:ignore
 		return $string;
 	}
 }

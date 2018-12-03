@@ -15,7 +15,8 @@ class Replace_Link_Service_Weglot {
 	 * @since 2.0
 	 */
 	public function __construct() {
-		$this->multisite_service           = weglot_get_service( 'Multisite_Service_Weglot' );
+		$this->multisite_service = weglot_get_service( 'Multisite_Service_Weglot' );
+		$this->option_service    = weglot_get_service( 'Option_Service_Weglot' );
 	}
 
 	/**
@@ -26,6 +27,7 @@ class Replace_Link_Service_Weglot {
 	 */
 	public function replace_url( $url ) {
 		$current_and_original = weglot_get_current_and_original_language();
+		$custom_urls          = $this->option_service->get_option( 'custom_urls' );
 
 		$parsed_url = wp_parse_url( $url );
 		$scheme     = isset( $parsed_url['scheme'] ) ? $parsed_url['scheme'] . '://' : '';
@@ -43,6 +45,17 @@ class Replace_Link_Service_Weglot {
 		if ( $current_and_original['current'] === $current_and_original['original'] ) {
 			return $url;
 		} else {
+			$request_without_language     = array_filter( explode( '/', $path ), 'strlen' );
+			$index_entries                = count( $request_without_language );
+
+			if ( isset( $request_without_language[ $index_entries ] ) && ! is_admin() && ! empty( $custom_urls ) && isset( $custom_urls[ $current_language ] ) ) {
+				$slug_in_work             = $request_without_language[ $index_entries ];
+				$key_slug                 = array_search( $slug_in_work, $custom_urls[ $current_language ] ); //phpcs:ignore
+				if ( false !== $key_slug && ! empty( $key_slug ) ) {
+					$path = str_replace( $slug_in_work, $key_slug, $path );
+				}
+			}
+
 			$url_translated = ( strlen( $path ) > 2 && substr( $path, 0, 4 ) === "/$current_language/" ) ?
 				"$scheme$user$pass$host$port$path$query$fragment" : "$scheme$user$pass$host$port/$current_language$path$query$fragment";
 

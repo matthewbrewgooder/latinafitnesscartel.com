@@ -22,7 +22,7 @@ function weglot_get_service( $service ) {
  * @return array
  */
 function weglot_get_options() {
-	return Context_Weglot::weglot_get_context()->get_service( '' )->get_options();
+	return Context_Weglot::weglot_get_context()->get_service( 'Option_Service_Weglot' )->get_options();
 }
 
 /**
@@ -200,7 +200,7 @@ function weglot_create_url_object( $url ) {
  * @return int
  */
 function weglot_get_postid_from_url() {
-	return url_to_postid( weglot_get_full_url_no_language() );
+	return url_to_postid( weglot_get_full_url_no_language() ); //phpcs:ignore
 }
 
 /**
