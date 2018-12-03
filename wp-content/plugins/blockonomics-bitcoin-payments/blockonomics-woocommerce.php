@@ -3,12 +3,13 @@
  * Plugin Name: Wordpress Bitcoin Payments - Blockonomics
  * Plugin URI: https://github.com/blockonomics/woocommerce-plugin
  * Description: Accept Bitcoin Payments on your WooCommerce-powered website with Blockonomics
- * Version: 1.5.1
+ * Version: 1.6.3
  * Author: Blockonomics
  * Author URI: https://www.blockonomics.co
  * License: MIT
  * Text Domain: blockonomics-bitcoin-payments
  * Domain Path: /languages/
+ * WC tested up to: 3.9.0
  */
 
 /*  Copyright 2017 Blockonomics Inc.
@@ -124,6 +125,12 @@ if (is_plugin_active('woocommerce/woocommerce.php') || class_exists('WooCommerce
                         'type' => 'text',
                         'description' => __('This controls the title which the user sees during checkout.', 'blockonomics-bitcoin-payments'),
                         'default' => __('Bitcoin', 'blockonomics-bitcoin-payments')
+                    ),
+                    'description' => array(
+                        'title' => __( 'Description', 'blockonomics-bitcoin-payments' ),
+                        'type' => 'text',
+                        'description' => __('This controls the description which the user sees during checkout.', 'blockonomics-bitcoin-payments'),
+                        'default' => ''
                     )
                 );
             }
@@ -154,9 +161,14 @@ if (is_plugin_active('woocommerce/woocommerce.php') || class_exists('WooCommerce
 
                 $blockonomics = new Blockonomics;
                 $responseObj = $blockonomics->new_address(get_option('blockonomics_api_key'), get_option("blockonomics_callback_secret"));
-                $price = $blockonomics->get_price(get_woocommerce_currency());
+                if(get_woocommerce_currency() != 'BTC'){
+                	$price = $blockonomics->get_price(get_woocommerce_currency());
+                	$price = $price * 100/(100+get_option('blockonomics_margin', 0));
+                }else{
+                	$price = 1;
+                }
 
-                if($responseObj->response_code != 'HTTP/1.1 200 OK') {
+                if($responseObj->response_code != 200) {
                     $this->displayError($woocommerce);
                     return;
                 }
@@ -194,6 +206,7 @@ if (is_plugin_active('woocommerce/woocommerce.php') || class_exists('WooCommerce
                 $address = isset($_REQUEST["show_order"]) ? $_REQUEST["show_order"] : "";
                 if ($address) {
                     $dir = plugin_dir_path(__FILE__);
+                    add_action('wp_enqueue_scripts', 'bnomics_enqueue_scripts' );
                     include $dir."order.php";
                     exit();
                 }
@@ -317,22 +330,11 @@ if (is_plugin_active('woocommerce/woocommerce.php') || class_exists('WooCommerce
 
             if (isset($_POST['runTest']))
             {
-
-                $urls_count = check_callback_urls();
-
-                if($urls_count == '2')
-                {
-                    $message = __("Seems that you have set multiple xPubs or you already have a Callback URL set. <a href='https://blockonomics.freshdesk.com/support/solutions/articles/33000209399-merchants-integrating-multiple-websites' target='_blank'>Here is a guide</a> to setup multiple websites.", 'blockonomics-bitcoin-payments');
-                    $type = 'error';
-                    add_settings_error('option_notice', 'option_notice', $message, $type);
-                    return;
-                }
-
                 $setup_errors = testSetup();
 
                 if($setup_errors)
                 {
-                    $message = __($setup_errors . '</p><p>For more information, please consult <a href="https://blockonomics.freshdesk.com/support/solutions/articles/33000215104-troubleshooting-unable-to-generate-new-address" target="_blank">this troubleshooting article</a></p>', 'blockonomics-bitcoin-payments');
+                    $message = $setup_errors;
                     $type = 'error';
                     add_settings_error('option_notice', 'option_notice', $message, $type);
                 }
@@ -364,15 +366,28 @@ if (is_plugin_active('woocommerce/woocommerce.php') || class_exists('WooCommerce
             }
         }
 
-        function enqueue_stylesheets(){
+        function bnomics_enqueue_stylesheets(){
           wp_enqueue_style('bnomics-style', plugin_dir_url(__FILE__) . "css/order.css");
+          wp_enqueue_style( 'bnomics-altcoins', plugin_dir_url(__FILE__) . "css/cryptofont/cryptofont.min.css");
+          wp_enqueue_style( 'bnomics-icons', plugin_dir_url(__FILE__) . "css/icons/icons.css");
+        }
+
+        function bnomics_enqueue_scripts(){
+          wp_enqueue_script( 'angular', plugins_url('js/angular.min.js', __FILE__) );
+          wp_enqueue_script( 'angular-resource', plugins_url('js/angular-resource.min.js', __FILE__) );
+          wp_enqueue_script( 'app', plugins_url('js/app.js', __FILE__) );
+                            wp_localize_script( 'app', 'ajax_object',
+                                array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
+          wp_enqueue_script( 'angular-qrcode', plugins_url('js/angular-qrcode.js', __FILE__) );
+          wp_enqueue_script( 'vendors', plugins_url('js/vendors.min.js', __FILE__) );
+          wp_enqueue_script( 'reconnecting-websocket', plugins_url('js/reconnecting-websocket.min.js', __FILE__) );
         }
 
         add_action('admin_menu', 'add_page');
         add_action('init', 'woocommerce_handle_blockonomics_return');
         add_action('woocommerce_order_details_after_order_table', 'nolo_custom_field_display_cust_order_meta', 10, 1);
         add_filter('woocommerce_payment_gateways', 'woocommerce_add_blockonomics_gateway');
-        add_action('wp_enqueue_scripts', 'enqueue_stylesheets' );
+        add_action('wp_enqueue_scripts', 'bnomics_enqueue_stylesheets' );
     }
 
 
@@ -421,142 +436,78 @@ function gen_callback($input)
   return 0;
 }
 
-function update_callback_url($callback_url, $xPub, $blockonomics)
-{
-    $blockonomics->update_callback(
-        get_option('blockonomics_api_key'),
-        $callback_url,
-        $xPub
-    );
-}
-
-/**
- * Check the status of callback urls
- * If no xPubs set, return
- * If one xPub is set without callback url, set the url
- * If more than one xPubs are set, give instructions on integrating to multiple sites
- * @return Strin Count of found xPubs
- */
-function check_callback_urls()
-{
-    include_once plugin_dir_path(__FILE__) . 'php' . DIRECTORY_SEPARATOR . 'Blockonomics.php';
-    $blockonomics = new Blockonomics;
-
-    $responseObj = $blockonomics->get_xpubs(get_option('blockonomics_api_key'));
-
-    // No xPubs set
-    if (count($responseObj) == 0)
-    {
-        return "0";
-    }
-
-    // One xPub set
-    if (count($responseObj) == 1)
-    {
-        $callback_secret = get_option('blockonomics_callback_secret');
-        $callback_url = WC()->api_request_url('WC_Gateway_Blockonomics');
-        $callback_url = add_query_arg('secret', $callback_secret, $callback_url);
-        // No Callback URL set, set one
-        if(!$responseObj[0]->callback || $responseObj[0]->callback == null)
-        {
-            update_callback_url($callback_url, $responseObj[0]->address, $blockonomics);
-            return "1";
-        }
-        // One xPub with one Callback URL
-        else
-        {
-            if($responseObj[0]->callback == $callback_url)
-            {
-                return "1";
-            }
-
-            // Check if only secret differs
-            if(strpos($responseObj[0]->callback, WC()->api_request_url('WC_Gateway_Blockonomics')) !== false)
-            {
-                update_callback_url($callback_url, $responseObj[0]->address, $blockonomics);
-                return "1";
-            }
-
-            return "2";
-        }
-    }
-
-    if (count($responseObj) > 1)
-    {
-        $callback_secret = get_option('blockonomics_callback_secret');
-        $callback_url = WC()->api_request_url('WC_Gateway_Blockonomics');
-        $callback_url = add_query_arg('secret', $callback_secret, $callback_url);
-
-        // Check if callback url is set
-        foreach ($responseObj as $resObj) {
-            if($resObj->callback == $callback_url)
-                {
-                    return "1";
-                }
-        }
-        return "2";
-    }
-}
-
 function testSetup()
 {
     include_once plugin_dir_path(__FILE__) . 'php' . DIRECTORY_SEPARATOR . 'Blockonomics.php';
-
+    
+    $api_key = get_option("blockonomics_api_key");
     $blockonomics = new Blockonomics;
-    $responseObj = $blockonomics->new_address(get_option('blockonomics_api_key'), get_option("blockonomics_callback_secret"), true);
-
-    if(!ini_get('allow_url_fopen')) {
-        $error_str = __('<i>allow_url_fopen</i> is not enabled, please enable this in php.ini', 'blockonomics-bitcoin-payments');
-
-    }  elseif(!isset($responseObj->response_code)) {
-        $error_str = __('Your webhost is blocking outgoing HTTPS connections. Blockonomics requires an outgoing HTTPS POST (port 443) to generate new address. Check with your webhosting provider to allow this.', 'blockonomics-bitcoin-payments');
-
-    } else {
-
-        switch ($responseObj->response_code) {
-
-            case 'HTTP/1.1 200 OK':
-                break;
-
-            case 'HTTP/1.1 401 Unauthorized': {
-                $error_str = __('API Key is incorrect. Make sure that the API key set in admin Blockonomics module configuration is correct.', 'blockonomics-bitcoin-payments');
-                break;
-            }
-
-            case 'HTTP/1.1 500 Internal Server Error': {
-
-                if(isset($responseObj->message)) {
-
-                    $error_code = $responseObj->message;
-
-                    switch ($error_code) {
-                        case "Could not find matching xpub":
-                            $error_str = __('There is a problem in the Callback URL. Make sure that you have set your Callback URL from the admin Blockonomics module configuration to your Merchants > Settings.', 'blockonomics-bitcoin-payments');
-                            break;
-                        case "This require you to add an xpub in your wallet watcher":
-                            $error_str = __('There is a problem in the XPUB. Make sure that the you have added an address to Wallet Watcher > Address Watcher. If you have added an address make sure that it is an XPUB address and not a Bitcoin address.', 'blockonomics-bitcoin-payments');
-                            break;
-                        default:
-                            $error_str = $responseObj->message;
-                    }
-                    break;
-                } else {
-                    $error_str = $responseObj->response_code;
-                    break;
-                }
-            }
-
-            default:
-                $error_str = $responseObj->response_code;
-                break;
-
+    $response = $blockonomics->get_callbacks($api_key);
+    $error_str = '';
+    $responseBody = json_decode(wp_remote_retrieve_body($response));
+    $callback_secret = get_option('blockonomics_callback_secret');
+    $api_url = WC()->api_request_url('WC_Gateway_Blockonomics');
+    $callback_url = add_query_arg('secret', $callback_secret, $api_url);
+    // Remove http:// or https:// from urls
+    $api_url_without_schema = preg_replace('/https?:\/\//', '', $api_url);
+    $callback_url_without_schema = preg_replace('/https?:\/\//', '', $callback_url);
+    $response_callback_without_schema = preg_replace('/https?:\/\//', '', $responseBody[0]->callback);
+    //TODO: Check This: WE should actually check code for timeout
+    if (!wp_remote_retrieve_response_code($response)) {
+        $error_str = __('Your server is blocking outgoing HTTPS calls', 'blockonomics-bitcoin-payments');
+    }
+    elseif (wp_remote_retrieve_response_code($response)==401)
+        $error_str = __('API Key is incorrect', 'blockonomics-bitcoin-payments');
+    elseif (wp_remote_retrieve_response_code($response)!=200)  
+        $error_str = $response->data;
+    elseif (!isset($responseBody) || count($responseBody) == 0)
+    {
+        $error_str = __('You have not entered an xpub', 'blockonomics-bitcoin-payments');
+    }
+    elseif (count($responseBody) == 1)
+    {
+        if(!$responseBody[0]->callback || $responseBody[0]->callback == null)
+        {
+          //No callback URL set, set one 
+          $blockonomics->update_callback($api_key, $callback_url, $responseBody[0]->address);   
+        }
+        elseif($response_callback_without_schema != $callback_url_without_schema)
+        {
+          $base_url = get_bloginfo('wpurl');
+          $base_url = preg_replace('/https?:\/\//', '', $base_url);
+          // Check if only secret differs
+          if(strpos($responseBody[0]->callback, $base_url) !== false)
+          {
+            //Looks like the user regenrated callback by mistake
+            //Just force Update_callback on server
+            $blockonomics->update_callback($api_key, $callback_url, $responseBody[0]->address);  
+          }
+          else
+          {
+            $error_str = __("You have an existing callback URL. Refer instructions on integrating multiple websites", 'blockonomics-bitcoin-payments');
+          }
         }
     }
-
-    if(isset($error_str)) {
+    else 
+    {
+        // Check if callback url is set
+        foreach ($responseBody as $resObj)
+         if(preg_replace('/https?:\/\//', '', $resObj->callback) == $callback_url_without_schema)
+            return "";
+        $error_str = __("You have an existing callback URL. Refer instructions on integrating multiple websites", 'blockonomics-bitcoin-payments');
+    }  
+    if (!$error_str)
+    {
+        //Everything OK ! Test address generation
+        $response= $blockonomics->new_address($api_key, $callback_secret, true);
+        if ($response->response_code!=200){
+          $error_str = $response->response_message;
+        }
+    }
+    if($error_str) {
+        $error_str = $error_str . __('<p>For more information, please consult <a href="https://blockonomics.freshdesk.com/support/solutions/articles/33000215104-troubleshooting-unable-to-generate-new-address" target="_blank">this troubleshooting article</a></p>', 'blockonomics-bitcoin-payments');
         return $error_str;
     }
-
     // No errors
     return false;
 }
@@ -622,7 +573,7 @@ function show_options()
                       </script>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php echo __('Accept Altcoin Payments (Using Shapeshift)', 'blockonomics-bitcoin-payments')?></th>
+                    <th scope="row"><?php echo __('Accept Altcoin Payments (Using Flyp.me)', 'blockonomics-bitcoin-payments')?></th>
                     <td><input type="checkbox" name="blockonomics_altcoins" value="1" <?php checked("1", get_option('blockonomics_altcoins')); ?>" /></td>
                 </tr>
                 <tr valign="top"><th scope="row"><?php echo __('Time period of countdown timer on payment page (in minutes)', 'blockonomics-bitcoin-payments')?></th>
@@ -636,11 +587,15 @@ function show_options()
                         </select>
                     </td>
                 </tr>
+                <tr valign="top">
+                    <th scope="row"><?php echo __('Extra Currency Rate Margin % (Increase live fiat to BTC rate by small percent)', 'blockonomics-bitcoin-payments')?></th>
+                    <td><input type="number" min="0" max="4" step="0.01" name="blockonomics_margin" value="<?php echo esc_attr( get_option('blockonomics_margin', 0) ); ?>" /></td>
+                </tr>
             </table>
             <p class="submit">
                 <input type="submit" class="button-primary" value="Save"/>
                 <input type="hidden" name="action" value="update" />
-                <input type="hidden" name="page_options" value="blockonomics_api_key,blockonomics_altcoins,blockonomics_timeperiod,blockonomics_gen_callback, api_updated" />
+                <input type="hidden" name="page_options" value="blockonomics_api_key,blockonomics_altcoins,blockonomics_timeperiod,blockonomics_margin,blockonomics_gen_callback, api_updated" />
                 <input onclick="checkForAPIKeyChange();" class="button-primary" name="test-setup-submit" value="Test Setup" style="max-width:85px;">
             </p>
         </form>
@@ -654,4 +609,111 @@ function show_options()
 
 <?php
 }
+
+add_action( 'wp_ajax_fetch_limit', 'bnomics_fetch_limit' );
+add_action( 'wp_ajax_create_order', 'bnomics_create_order' );
+add_action( 'wp_ajax_check_order', 'bnomics_check_order' );
+add_action( 'wp_ajax_send_email', 'bnomics_alt_deposit_email' );
+add_action( 'wp_ajax_info_order', 'bnomics_info_order' );
+
+//Look into wether this will ever be needed
+add_action( 'wp_ajax_nopriv_fetch_limit', 'bnomics_fetch_limit' );
+add_action( 'wp_ajax_nopriv_create_order', 'bnomics_create_order' );
+add_action( 'wp_ajax_nopriv_check_order', 'bnomics_check_order' );
+add_action( 'wp_ajax_nopriv_send_email', 'bnomics_alt_deposit_email' );
+add_action( 'wp_ajax_nopriv_info_order', 'bnomics_info_order' );
+
+function bnomics_fetch_limit(){
+    include_once plugin_dir_path(__FILE__) . 'php' . DIRECTORY_SEPARATOR . 'Flyp.php';
+    $flypFrom           = $_REQUEST['altcoin'];
+    $flypTo             = "BTC";
+    $flypme = new FlypMe();
+    $limits = $flypme->orderLimits($flypFrom, $flypTo);
+    if(isset($limits)){
+        print(json_encode($limits));
+    }
+    wp_die();
+}
+
+function bnomics_create_order(){
+    include_once plugin_dir_path(__FILE__) . 'php' . DIRECTORY_SEPARATOR . 'Flyp.php';
+    $flypFrom           = $_REQUEST['altcoin'];
+    $flypAmount         = $_REQUEST['amount'];
+    $flypDestination    = $_REQUEST['address'];
+    $flypTo             = "BTC";
+    $woocommerce_order_id = $_REQUEST['order_id'];
+    $flypme = new FlypMe();
+    $order = $flypme->orderNew($flypFrom, $flypTo, $flypAmount, $flypDestination);
+    if(isset($order->order->uuid)){
+        $order_url = WC()->api_request_url('WC_Gateway_Blockonomics');
+        $order_url = add_query_arg('show_order', $flypDestination, $order_url);
+        update_post_meta($woocommerce_order_id, 'flyp_uuid', $order->order->uuid);
+        $order = $flypme->orderAccept($order->order->uuid);
+        if(isset($order->deposit_address)){
+            print(json_encode($order));
+        }
+    }
+    wp_die();
+}
+
+function bnomics_check_order(){
+    include_once plugin_dir_path(__FILE__) . 'php' . DIRECTORY_SEPARATOR . 'Flyp.php';
+    $flypID             = $_REQUEST['uuid'];
+    $flypme = new FlypMe();
+    $order = $flypme->orderCheck($flypID);
+    if(isset($order)){
+        print(json_encode($order));
+    }
+    wp_die();
+}
+
+function bnomics_info_order(){
+    include_once plugin_dir_path(__FILE__) . 'php' . DIRECTORY_SEPARATOR . 'Flyp.php';
+    $flypID             = $_REQUEST['uuid'];
+    $flypme = new FlypMe();
+    $order = $flypme->orderInfo($flypID);
+    if(isset($order)){
+        print(json_encode($order));
+    }
+    wp_die();
+}
+
+function bnomics_alt_deposit_email(){
+    $order_id = $_REQUEST['order_id'];
+    $order_link = $_REQUEST['order_link'];
+    $order_coin = $_REQUEST['order_coin'];
+    $order_coin_sym = $_REQUEST['order_coin_sym'];
+    $order = new WC_Order($order_id);
+    $billing_email = $order->billing_email;
+    $email = $billing_email;
+    $subject = $order_coin . __(' Payment Received', 'blockonomics-bitcoin-payments');
+    $heading = $order_coin . __(' Payment Received', 'blockonomics-bitcoin-payments');
+    $message = __('Your payment has been received. It will take a while for the network to confirm your order.<br>To view your payment status, copy and use the link below.<br>', 'blockonomics-bitcoin-payments').'<a href="'.$order_link.'">'.$order_link.'</a>';
+    bnomics_email_woocommerce_style($email, $subject, $heading, $message);
+    wp_die();
+}
+
+function bnomics_alt_deposit_email_content( $order, $heading = false, $mailer ){
+    $template = 'emails/customer-processing-order.php';
+ 
+    return wc_get_template_html( $template, array(
+        'order'         => $order,
+        'email_heading' => $heading,
+        'sent_to_admin' => true,
+        'plain_text'    => false,
+        'email'         => $mailer
+    ) );
+}
+
+function bnomics_email_woocommerce_style($email, $subject, $heading, $message) {
+  $mailer = WC()->mailer();
+  $wrapped_message = $mailer->wrap_message($heading, $message);
+  $wc_email = new WC_Email;
+  $html_message = $wc_email->style_inline($wrapped_message);
+  // Send the email using wordpress mail function
+  //wp_mail( $email, $subject, $html_message, HTML_EMAIL_HEADERS );
+  // Send the email using woocommerce mailer send
+  $mailer->send( $email, $subject, $html_message, array('Content-Type: text/html; charset=UTF-8') );
+}
+
 ?>
