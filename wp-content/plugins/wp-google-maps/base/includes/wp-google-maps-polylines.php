@@ -239,17 +239,10 @@ function wpgmaps_b_admin_add_polyline_javascript($mapid) {
         }
         if (isset($res->kml)) { $kml = $res->kml; } else { $kml = false; }
 
-        
-        $wpgmza_settings = get_option("WPGMZA_OTHER_SETTINGS");
-        if (isset($wpgmza_settings['wpgmza_api_version']) && $wpgmza_settings['wpgmza_api_version'] != "") {
-            $api_version_string = "v=".$wpgmza_settings['wpgmza_api_version']."&";
-        } else {
-            $api_version_string = "v=3.exp&";
-        }
         ?>
         <link rel='stylesheet' id='wpgooglemaps-css'  href='<?php echo wpgmaps_get_plugin_url(); ?>/css/wpgmza_style.css' type='text/css' media='all' />
         <script type="text/javascript" >
-            jQuery(document).ready(function(){
+            jQuery(function($) {
                     function wpgmza_InitMap() {
                         var myLatLng = new google.maps.LatLng(<?php echo $wpgmza_lat; ?>,<?php echo $wpgmza_lng; ?>);
                         MYMAP.init('#wpgmza_map', myLatLng, <?php echo $start_zoom; ?>);
@@ -472,7 +465,7 @@ function wpgmaps_b_admin_edit_polyline_javascript($mapid,$polyid) {
             var poly_path = new google.maps.MVCArray;
             var path;
                 
-            jQuery(document).ready(function(){
+            jQuery(function($) {
                 
                     function wpgmza_InitMap() {
                         var myLatLng = new google.maps.LatLng(<?php echo $wpgmza_lat; ?>,<?php echo $wpgmza_lng; ?>);

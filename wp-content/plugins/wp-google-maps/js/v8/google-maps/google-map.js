@@ -4,7 +4,7 @@
  * @requires WPGMZA.Map
  * @pro-requires WPGMZA.ProMap
  */
-(function($) {
+jQuery(function($) {
 	var Parent;
 	
 	/**
@@ -27,9 +27,10 @@
 			
 			if(status.code == "USER_CONSENT_NOT_GIVEN")
 			{
-				console.log(WPGMZA.api_consent_html);
 				return;
 			}
+			
+			$(element).html("<div class='notice notice-error'><p>" + WPGMZA.localized_strings.google_api_not_loaded + "<pre>" + message + "</pre></p></div>");
 			
 			throw new Error(message);
 		}
@@ -499,4 +500,4 @@
 		google.maps.event.trigger(this.googleMap, "resize");
 	}
 	
-})(jQuery);
+});

@@ -3,7 +3,7 @@
  * @module OLGeocoder
  * @requires WPGMZA.Geocoder
  */
-(function($) {
+jQuery(function($) {
 	
 	/**
 	 * @class OLGeocoder
@@ -132,7 +132,7 @@
 						lng: parseFloat(response[i].lon)
 					};
 					
-					// Backward compatibility
+					// Backward compatibility with old UGM
 					response[i].lng = response[i].lon;
 				}
 				
@@ -179,4 +179,4 @@
 		});
 	}
 	
-})(jQuery);
+});

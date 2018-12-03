@@ -3,8 +3,14 @@
  * @module GoogleAPIErrorHandler
  * @requires WPGMZA
  */
-(function($){  
+jQuery(function($) { 
 
+	/**
+	 * This class catches Google Maps API errors and presents them in a friendly manner, before sending them on to the consoles default error handler.
+	 * @class WPGMZA.GoogleAPIErrorHandler
+	 * @constructor WPGMZA.GoogleAPIErrorHandler
+	 * @memberof WPGMZA
+	 */
 	WPGMZA.GoogleAPIErrorHandler = function() {
 		
 		var self = this;
@@ -27,6 +33,9 @@
 		
 		this.messagesAlreadyDisplayed = {};
 		
+		if(WPGMZA.settings.developer_mode)
+			return;
+		
 		// Override error function
 		var _error = console.error;
 		
@@ -38,6 +47,12 @@
 		}
 	}
 	
+	/**
+	 * Overrides console.error to scan the error message for Google Maps API error messages.
+	 * @method 
+	 * @memberof WPGMZA.GoogleAPIErrorHandler
+	 * @param {string} message The error message passed to the console
+	 */
 	WPGMZA.GoogleAPIErrorHandler.prototype.onErrorMessage = function(message)
 	{
 		var m;
@@ -54,6 +69,13 @@
 		}
 	}
 	
+	/**
+	 * Called by onErrorMessage when a Google Maps API error is picked up, this will add the specified message to the Maps API error message dialog, along with URLs to compliment it. This function ignores duplicate error messages.
+	 * @method
+	 * @memberof WPGMZA.GoogleAPIErrorHandler
+	 * @param {string} message The message, or part of the message, intercepted from the console
+	 * @param {array} [urls] An array of URLs relating to the error message to compliment the message.
+	 */
 	WPGMZA.GoogleAPIErrorHandler.prototype.addErrorMessage = function(message, urls)
 	{
 		if(this.messagesAlreadyDisplayed[message])
@@ -122,4 +144,4 @@
 	
 	WPGMZA.googleAPIErrorHandler = new WPGMZA.GoogleAPIErrorHandler();
 
-})(jQuery);
+});

@@ -3,7 +3,19 @@
  * @module FriendlyError
  * @requires WPGMZA
  */
-(function($) {
+jQuery(function($) {
+	
+	/**
+	 * Deprecated
+	 * @class WPGMZA.FriendlyError
+	 * @constructor WPGMZA.FriendlyError
+	 * @memberof WPGMZA
+	 * @deprecated
+	 */
+	WPGMZA.FriendlyError = function()
+	{
+		
+	}
 	
 	/*var template = '\
 		<div class="notice notice-error"> \
@@ -29,4 +41,4 @@
 		this.element.find("pre").html(nativeError.message + "\r\n" + nativeError.stack + "\r\n\r\n on " + window.location.href);
 	}*/
 	
-})(jQuery);
+});

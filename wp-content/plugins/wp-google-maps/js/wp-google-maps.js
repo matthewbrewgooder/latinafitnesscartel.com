@@ -18,25 +18,21 @@ if ('undefined' === typeof window.jQuery) {
     
 }
 
-jQuery(function() {
+jQuery(function($) {
 
+	if (/1\.(0|1|2|3|4|5|6|7)\.(0|1|2|3|4|5|6|7|8|9)/.test(jQuery.fn.jquery)) {
+		setTimeout(function(){ 
+			for(var entry in wpgmaps_localize) {
+				document.getElementById('wpgmza_map_'+entry).innerHTML = wpgmza_jquery_error_string_2;
+			}
+		}, 3000);
+	} else {
 
-    jQuery(document).ready(function(){
-        if (/1\.(0|1|2|3|4|5|6|7)\.(0|1|2|3|4|5|6|7|8|9)/.test(jQuery.fn.jquery)) {
-            setTimeout(function(){ 
-                for(var entry in wpgmaps_localize) {
-                    document.getElementById('wpgmza_map_'+entry).innerHTML = wpgmza_jquery_error_string_2;
-                }
-            }, 3000);
-        } else {
-
-            for(var entry in wpgmaps_localize) {
-                InitMap(wpgmaps_localize[entry]['id'],false);
-            }
-           
-        }
-
-    });
+		for(var entry in wpgmaps_localize) {
+			InitMap(wpgmaps_localize[entry]['id'],false);
+		}
+	   
+	}
 
 });
 
@@ -441,20 +437,21 @@ jQuery("body").on("keypress","#addressInput", function(event) {
 var autocomplete;
 function fillInAddress() {
   // Get the place details from the autocomplete object.
-  var place = autocomplete.getPlace();
+  // var place = autocomplete.getPlace();
 }
 var elementExists = document.getElementById("addressInput");
 if (typeof google === 'object' && typeof google.maps === 'object' && typeof google.maps.places === 'object' && typeof google.maps.places.Autocomplete === 'function' && WPGMZA.settings.engine == "google-maps") {
     if (elementExists !== null) {
+		
         /* initialize the autocomplete form */
-        autocomplete = new google.maps.places.Autocomplete(
-          /** @type {HTMLInputElement} */(document.getElementById('addressInput')),
-          { types: ['geocode'] });
-        // When the user selects an address from the dropdown,
-        // populate the address fields in the form.
-        google.maps.event.addListener(autocomplete, 'place_changed', function() {
-        fillInAddress();
-        });
+		autocomplete = new google.maps.places.Autocomplete(
+			document.getElementById('addressInput'),
+			{ 
+				fields: ["name", "formatted_address"],
+				types: ['geocode'] 
+			}
+		);
+		
     } 
 }
 

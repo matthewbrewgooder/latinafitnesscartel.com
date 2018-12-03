@@ -3,7 +3,7 @@
  * @module OLCircle
  * @requires WPGMZA.Circle
  */
-(function($) {
+jQuery(function($) {
 	
 	var Parent = WPGMZA.Circle;
 	
@@ -21,6 +21,11 @@
 			this.settings.fillColor = "#ff0000";
 			this.settings.fillOpacity = 0.6;
 		}
+		
+		if(options.fillColor)
+			this.settings.fillColor = options.fillColor;
+		if(options.fillOpacity)
+			this.settings.fillOpacity = options.fillOpacity;
 		
 		this.olStyle = new ol.style.Style(this.getStyleFromSettings());
 		
@@ -82,4 +87,4 @@
 		this.layer.setStyle(this.olStyle);
 	}
 	
-})(jQuery);
+});

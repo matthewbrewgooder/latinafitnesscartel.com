@@ -3,8 +3,15 @@
  * @module Event
  * @requires WPGMZA
  */ 
-(function($) {
+jQuery(function($) {
 		
+	/**
+	 * Base class used for events (for non-HTMLElement objects)
+	 * @class WPGMZA.Event
+	 * @constructor WPGMZA.Event
+	 * @memberof WPGMZA
+	 * @param {string|object} options The event type as a string, or an object of options to be mapped to this event
+	 */
 	WPGMZA.Event = function(options)
 	{
 		if(typeof options == "string")
@@ -26,9 +33,14 @@
 	WPGMZA.Event.AT_TARGET				= 1;
 	WPGMZA.Event.BUBBLING_PHASE			= 2;
 
+	/**
+	 * Prevents any further propagation of this event
+	 * @method
+	 * @memberof WPGMZA.Event
+	 */
 	WPGMZA.Event.prototype.stopPropagation = function()
 	{
 		this._cancelled = true;
 	}
 	
-})(jQuery);
+});
