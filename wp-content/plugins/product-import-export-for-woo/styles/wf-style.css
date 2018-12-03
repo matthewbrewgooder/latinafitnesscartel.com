@@ -93,10 +93,6 @@
     margin-top: 4px;
 }
 
-.woocommerce-message a.button-primary, .woocommerce-message button.button-primary{
-    background: #0085ba none repeat scroll 0 0 !important;
-    border-color: #0073aa #006799 #006799 !important;}
-.woocommerce-message{border-left-color:#46b450 !important;}
 .rate-star{ 
     background: rgba(0, 0, 0, 0) url("../images/stars.png") no-repeat scroll 0 0;
     display: inline-block;
@@ -224,7 +220,7 @@
 .pipe-review-widget{    
     background: #fff;
     padding: 5px;
-    margin-top: 23px;
+    margin-bottom: 23px;
 }
 .pipe-review-widget p{
     margin-right:5px;

@@ -5,8 +5,8 @@
   Description: Import and Export Products From and To your WooCommerce Store.
   Author: WebToffee
   Author URI: https://www.webtoffee.com/product/product-import-export-woocommerce/
-  Version: 1.4.6
-  WC tested up to: 3.4.4
+  Version: 1.5.1
+  WC tested up to: 3.5.1
   License:           GPLv3
   License URI:       https://www.gnu.org/licenses/gpl-3.0.html
   Text Domain: wf_csv_import_export
@@ -18,7 +18,7 @@ if (!defined('ABSPATH') || !is_admin()) {
 
 
 if (!defined('WF_PIPE_CURRENT_VERSION')) {
-    define("WF_PIPE_CURRENT_VERSION", "1.4.6");
+    define("WF_PIPE_CURRENT_VERSION", "1.5.1");
 }
 if (!defined('WF_PROD_IMP_EXP_ID')) {
     define("WF_PROD_IMP_EXP_ID", "wf_prod_imp_exp");
@@ -58,6 +58,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 add_action('admin_footer', array($this, 'deactivate_scripts'));
                 add_action('wp_ajax_pipe_submit_uninstall_reason', array($this, "send_uninstall_reason"));
+                
+
+                add_filter('admin_footer_text', array($this, 'WT_admin_footer_text'), 100);
+                add_action('wp_ajax_pipe_wt_review_plugin', array($this, "review_plugin"));
+
+
+                if (!get_option('webtoffee_storefrog_admin_notices_dismissed')) {
+                    add_action('admin_notices', array($this, 'webtoffee_storefrog_admin_notices'));
+                    add_action('wp_ajax_webtoffee_storefrog_notice_dismiss', array($this, 'webtoffee_storefrog_notice_dismiss'));
+                }
 
                 include_once( 'includes/class-wf-prodimpexpcsv-system-status-tools.php' );
                 include_once( 'includes/class-wf-prodimpexpcsv-admin-screen.php' );
@@ -71,8 +81,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             public function wf_plugin_action_links($links) {
                 $plugin_links = array(
                     '<a href="' . admin_url('admin.php?page=wf_woocommerce_csv_im_ex&tab=export') . '">' . __('Import Export', 'wf_csv_import_export') . '</a>',
-                    '<a target="_blank" href="https://www.xadapter.com/product/product-import-export-plugin-for-woocommerce/" target="_blank">' . __('Premium Upgrade', 'wf_csv_import_export') . '</a>',
-                    '<a target="_blank" href="https://wordpress.org/support/plugin/product-import-export-for-woo/">' . __('Support', 'wf_csv_import_export') . '</a>',
+                    '<a target="_blank" href="https://www.webtoffee.com/product/product-import-export-woocommerce/" style="color:#3db634;"> ' . __('Premium Upgrade', 'wf_csv_import_export') . '</a>',
+                    '<a target="_blank" href="https://www.webtoffee.com/support/">' . __('Support', 'wf_csv_import_export') . '</a>',
                     '<a target="_blank" href="https://wordpress.org/support/plugin/product-import-export-for-woo/reviews/">' . __('Review', 'wf_csv_import_export') . '</a>',
                 );
                 if (array_key_exists('deactivate', $links)) {
@@ -174,7 +184,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         'id' => 'looking-for-other',
                         'text' => __('It\'s not what I was looking for', 'wf_csv_import_export'),
                         'type' => 'textarea',
-                        'placeholder' =>  __('Could you tell us a bit more?', 'wf_csv_import_export')
+                        'placeholder' => __('Could you tell us a bit more?', 'wf_csv_import_export')
                     ),
                     array(
                         'id' => 'did-not-work-as-expected',
@@ -273,15 +283,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         $(function () {
                             var modal = $('#pipe-pipe-modal');
                             var deactivateLink = '';
-                            
-                            
+
+
                             $('#the-list').on('click', 'a.pipe-deactivate-link', function (e) {
                                 e.preventDefault();
                                 modal.addClass('modal-active');
                                 deactivateLink = $(this).attr('href');
                                 modal.find('a.dont-bother-me').attr('href', deactivateLink).css('float', 'left');
                             });
-                            
+
                             $('#pipe-pipe-modal').on('click', 'a.review-and-deactivate', function (e) {
                                 e.preventDefault();
                                 window.open("https://wordpress.org/support/plugin/product-import-export-for-woo/reviews/#new-post");
@@ -296,11 +306,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 modal.find('.reason-input').remove();
                                 var inputType = parent.data('type'),
                                         inputPlaceholder = parent.data('placeholder');
-                                if('reviewhtml' === inputType) {       
-                                var reasonInputHtml = '<div class="reviewlink"><a href="#" target="_blank" class="review-and-deactivate"><?php _e('Deactivate and leave a review', 'wf_csv_import_export'); ?> <span class="xa-pipe-rating-link"> &#9733;&#9733;&#9733;&#9733;&#9733; </span></a></div>';
-                            }else{
-                                var reasonInputHtml = '<div class="reason-input">' + (('text' === inputType) ? '<input type="text" class="input-text" size="40" />' : '<textarea rows="5" cols="45"></textarea>') + '</div>';
-                            }
+                                if ('reviewhtml' === inputType) {
+                                    var reasonInputHtml = '<div class="reviewlink"><a href="#" target="_blank" class="review-and-deactivate"><?php _e('Deactivate and leave a review', 'wf_csv_import_export'); ?> <span class="xa-pipe-rating-link"> &#9733;&#9733;&#9733;&#9733;&#9733; </span></a></div>';
+                                } else {
+                                    var reasonInputHtml = '<div class="reason-input">' + (('text' === inputType) ? '<input type="text" class="input-text" size="40" />' : '<textarea rows="5" cols="45"></textarea>') + '</div>';
+                                }
                                 if (inputType !== '') {
                                     parent.append($(reasonInputHtml));
                                     parent.find('input, textarea').attr('placeholder', inputPlaceholder).focus();
@@ -348,15 +358,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     wp_send_json_error();
                 }
 
-                //$current_user = wp_get_current_user();
+
 
                 $data = array(
                     'reason_id' => sanitize_text_field($_POST['reason_id']),
                     'plugin' => "productimportexort",
                     'auth' => 'wfpipe_uninstall_1234#',
                     'date' => gmdate("M d, Y h:i:s A"),
-                    'url' => home_url(),
-                    'user_email' => '',//$current_user->user_email,
+                    'url' => '',
+                    'user_email' => '',
                     'reason_info' => isset($_REQUEST['reason_info']) ? trim(stripslashes($_REQUEST['reason_info'])) : '',
                     'software' => $_SERVER['SERVER_SOFTWARE'],
                     'php_version' => phpversion(),
@@ -374,13 +384,83 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     'redirection' => 5,
                     'httpversion' => '1.0',
                     'blocking' => false,
-                    'headers' => array('user-agent' => 'pipe/' . md5(esc_url(home_url())) . ';'),
                     'body' => $data,
                     'cookies' => array()
-                    )
+                        )
                 );
 
                 wp_send_json_success();
+            }
+
+            function webtoffee_storefrog_admin_notices() {
+                if (apply_filters('webtoffee_storefrog_suppress_admin_notices', false)) {
+                    return;
+                }
+                $screen = get_current_screen();
+                $allowed_screen_ids = array('product_page_wf_woocommerce_csv_im_ex');
+
+                if (in_array($screen->id, $allowed_screen_ids) || (isset($_GET['import']) && $_GET['import'] == 'xa_woocommerce_csv')) {
+
+                    $notice = __('<h3>Save Time, Money & Hassle on Your WooCommerce Data Migration?</h3>', 'wf_csv_import_export');
+                    $notice .= __('<h3>Use StoreFrog Migration Services.</h3>', 'wf_csv_import_export');
+
+                    $content = '<style>.webtoffee-storefrog-nav-tab.updated {display: flex;align-items: center;margin: 18px 20px 10px 0;padding:23px;border-left-color: #2c85d7!important}.webtoffee-storefrog-nav-tab ul {margin: 0;}.webtoffee-storefrog-nav-tab h3 {margin-top: 0;margin-bottom: 9px;font-weight: 500;font-size: 16px;color: #2880d3;}.webtoffee-storefrog-nav-tab h3:last-child {margin-bottom: 0;}.webtoffee-storefrog-banner {flex-basis: 20%;padding: 0 15px;margin-left: auto;} .webtoffee-storefrog-banner a:focus{box-shadow: none;}</style>';
+                    $content .= '<div class="updated woocommerce-message webtoffee-storefrog-nav-tab notice is-dismissible"><ul>' . $notice . '</ul><div class="webtoffee-storefrog-banner"><a href="http://www.storefrog.com/" target="_blank"> <img src="' . plugins_url(basename(plugin_dir_path(WF_ProdImpExpCsv_FILE))) . '/images/storefrog.png"/></a></div><div style="position: absolute;top: 0;right: 1px;z-index: 10000;" ><button type="button" id="webtoffee-storefrog-notice-dismiss" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button></div></div>';
+                    echo $content;
+
+
+                    wc_enqueue_js("
+					jQuery( '#webtoffee-storefrog-notice-dismiss' ).click( function() {
+                                            
+						jQuery.post( '" . admin_url("admin-ajax.php") . "', { action: 'webtoffee_storefrog_notice_dismiss' } );
+						jQuery('.webtoffee-storefrog-nav-tab').fadeOut();
+					});
+				");
+                }
+            }
+
+            public function webtoffee_storefrog_notice_dismiss() {
+
+                if (!current_user_can('manage_woocommerce')) {
+                    wp_die(-1);
+                }
+                update_option('webtoffee_storefrog_admin_notices_dismissed', 1);
+                wp_die();
+            }
+
+            public function WT_admin_footer_text($footer_text) {
+                if (!current_user_can('manage_woocommerce') || !function_exists('wc_get_screen_ids')) {
+                    return $footer_text;
+                }
+                $screen = get_current_screen();
+                $allowed_screen_ids = array('product_page_wf_woocommerce_csv_im_ex');
+                if (in_array($screen->id, $allowed_screen_ids) || (isset($_GET['import']) && $_GET['import'] == 'xa_woocommerce_csv')) {
+                    if (!get_option('pipe_wt_plugin_reviewed')) {
+                        $footer_text = sprintf( 
+                                __('If you like the plugin please leave us a %1$s review.', 'wf_csv_import_export'), '<a href="https://wordpress.org/support/plugin/product-import-export-for-woo/reviews?rate=5#new-post" target="_blank" class="wt-review-link" data-rated="' . esc_attr__('Thanks :)', 'wf_csv_import_export') . '">&#9733;&#9733;&#9733;&#9733;&#9733;</a>'
+                        );
+                        wc_enqueue_js(
+                                "jQuery( 'a.wt-review-link' ).click( function() {
+                                                   jQuery.post( '" . WC()->ajax_url() . "', { action: 'pipe_wt_review_plugin' } );
+                                                   jQuery( this ).parent().text( jQuery( this ).data( 'rated' ) );
+                                           });"
+                        );
+                    } else {
+                        $footer_text = __('Thank you for your review.', 'xa_woocommerce_csv');
+                    }
+                }
+
+                return '<i>'.$footer_text.'</i>';
+            }
+            
+            
+            public function review_plugin(){
+                if (!current_user_can('manage_woocommerce')) {
+                    wp_die(-1);
+                }
+                update_option('pipe_wt_plugin_reviewed', 1);
+                wp_die();
+                
             }
 
         }
@@ -400,7 +480,7 @@ register_activation_hook(__FILE__, 'hf_welcome_screen_activate_basic');
 function hf_welcome_screen_activate_basic() {
     if (is_plugin_active('product-csv-import-export-for-woocommerce/product-csv-import-export.php')) {
         deactivate_plugins(basename(__FILE__));
-        wp_die(__("Is everything fine? You already have the Premium version installed in your website. For any issues, kindly raise a ticket via <a target='_blank' href='//support.xadapter.com/'>support.xadapter.com</a>", "wf_csv_import_export"), "", array('back_link' => 1));
+        wp_die(__("Is everything fine? You already have the Premium version installed in your website. For any issues, kindly raise a ticket via <a target='_blank' href='https://www.webtoffee.com/support/'>support</a>", "wf_csv_import_export"), "", array('back_link' => 1));
     }
     update_option('xa_pipe_plugin_installed_date', date('Y-m-d H:i:s'));
     set_transient('_welcome_screen_activation_redirect', true, 30);

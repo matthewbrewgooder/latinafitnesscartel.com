@@ -41,4 +41,7 @@ return apply_filters( 'woocommerce_csv_product_postmeta_defaults', array(
 	'download_expiry'             => '',
 	'product_url'                 => '',
 	'button_text'                 => '',
+        'sold_individually'           => 'no',
+        'low_stock_amount'            =>0,
+    
 ) );

@@ -24,7 +24,7 @@ if (!empty($ftp_settings)) {
         <a href="<?php echo admin_url('admin.php?page=wf_woocommerce_csv_im_ex'); ?>" class="nav-tab"><?php _e('Product Export', 'wf_csv_import_export'); ?></a>
         <a href="<?php echo admin_url('admin.php?import=xa_woocommerce_csv'); ?>" class="nav-tab nav-tab-active"><?php _e('Product Import', 'wf_csv_import_export'); ?></a>
         <a href="<?php echo admin_url('admin.php?page=wf_woocommerce_csv_im_ex&tab=help'); ?>" class="nav-tab"><?php _e('Help', 'wf_csv_import_export'); ?></a>
-        <a href="https://www.xadapter.com/product/product-import-export-plugin-for-woocommerce/" target="_blank" class="nav-tab nav-tab-premium"><?php _e('Upgrade to Premium for More Features', 'wf_csv_import_export'); ?></a>
+        <a href="https://www.webtoffee.com/product/product-import-export-woocommerce/" target="_blank" class="nav-tab nav-tab-premium"><?php _e('Upgrade to Premium for More Features', 'wf_csv_import_export'); ?></a>
     </h2>
 
     <div class="pipe-main-box">

@@ -173,8 +173,7 @@ class WF_CSV_Parser {
 	 * @param  integer $merge_empty_cells
 	 * @return array
 	 */
-	public function parse_product( $item, $merge_empty_cells = 0 ) {
-            
+	public function parse_product( $item, $merge_empty_cells = 0 ) {            
 		global $WF_CSV_Product_Import, $wpdb;
 		$this->row++;
 
@@ -421,7 +420,7 @@ class WF_CSV_Parser {
 
 				// Product type check
 				if ( $taxonomy == 'product_type' ) {
-					$term = strtolower( $value );
+					$term = strtolower(trim($value));
 
 					if ( ! array_key_exists( $term, $this->allowed_product_types ) ) {
 						$WF_CSV_Product_Import->hf_log_data_change( 'csv-import', sprintf( __('> > > Product type "%s" not allowed - using simple.', 'wf_csv_import_export'), $term ) );
@@ -481,12 +480,12 @@ class WF_CSV_Parser {
 								 */
 								$term_may_exist = term_exists( $term, $taxonomy, absint( $parent ) );
 
-								$WF_CSV_Product_Import->hf_log_data_change( 'CSV-Import', sprintf( __( '> > (' . __LINE__ . ') Term %s (%s) exists? %s', 'wf_csv_import_export' ), sanitize_text_field( $term ), esc_html( $taxonomy ), $term_may_exist ? print_r( $term_may_exist, true ) : '-' ) );
+								$WF_CSV_Product_Import->hf_log_data_change( 'csv-import', sprintf( __( '> > (' . __LINE__ . ') Term %s (%s) exists? %s', 'wf_csv_import_export' ), sanitize_text_field( $term ), esc_html( $taxonomy ), $term_may_exist ? print_r( $term_may_exist, true ) : '-' ) );
 
 								if ( is_array( $term_may_exist ) ) {
 									$possible_term = get_term( $term_may_exist['term_id'], 'product_cat' );
 
-									if ( $possible_term->parent == $parent ) {
+									if (!empty($possible_term) && $possible_term->parent == $parent ) {
 										$term_id = $term_may_exist['term_id'];
 									}
 								}
@@ -506,7 +505,7 @@ class WF_CSV_Parser {
 									if ( ! is_wp_error( $t ) ) {
 										$term_id = $t['term_id'];
 									} else {
-										$WF_CSV_Product_Import->hf_log_data_change( 'CSV-Import', sprintf( __( '> > (' . __LINE__ . ') Failed to import term %s, parent %s - %s', 'wf_csv_import_export' ), sanitize_text_field( $term ), sanitize_text_field( $parent ), sanitize_text_field( $taxonomy ) ) );
+										$WF_CSV_Product_Import->hf_log_data_change( 'csv-import', sprintf( __( '> > (' . __LINE__ . ') Failed to import term %s, parent %s - %s', 'wf_csv_import_export' ), sanitize_text_field( $term ), sanitize_text_field( $parent ), sanitize_text_field( $taxonomy ) ) );
 										break;
 									}
 								}
@@ -592,16 +591,19 @@ class WF_CSV_Parser {
 
 					// Exists?
 					if ( ! taxonomy_exists( $taxonomy ) ) {
+                                                
 
 						$nicename = strtolower( sanitize_title( str_replace( 'pa_', '', $taxonomy ) ) );
-
+                                                
+                                                $attribute_label = ucwords(str_replace('-',' ',$nicename)); // for importing attribute name as human readable string
+                                                
 						$WF_CSV_Product_Import->hf_log_data_change( 'csv-import', sprintf( __('> > Attribute taxonomy "%s" does not exist. Adding it. Nicename: %s', 'wf_csv_import_export'), $taxonomy, $nicename ) );
 
 						$exists_in_db = $wpdb->get_var( "SELECT attribute_id FROM " . $wpdb->prefix . "woocommerce_attribute_taxonomies WHERE attribute_name = '" . $nicename . "';" );
 
 						if ( ! $exists_in_db ) {
 							// Create the taxonomy
-							$wpdb->insert( $wpdb->prefix . "woocommerce_attribute_taxonomies", array( 'attribute_name' => $nicename, 'attribute_label' => $nicename, 'attribute_type' => 'select', 'attribute_orderby' => 'menu_order' ) );
+							$wpdb->insert( $wpdb->prefix . "woocommerce_attribute_taxonomies", array( 'attribute_name' => $nicename, 'attribute_label' => $attribute_label, 'attribute_type' => 'select', 'attribute_orderby' => 'menu_order' ) );
 						} else {
 							$WF_CSV_Product_Import->hf_log_data_change( 'csv-import', sprintf( __('> > Attribute taxonomy %s already exists in DB.', 'wf_csv_import_export'), $taxonomy ) );
 						}
@@ -842,7 +844,8 @@ class WF_CSV_Parser {
 		$product['sku']        = ( ! empty( $item['sku'] ) ) ? $item['sku'] : '';
 		$product['post_title'] = ( ! empty( $item['post_title'] ) ) ? $item['post_title'] : '';
                 $product['post_type'] = $this->post_type;
-		unset( $item, $terms_array, $postmeta, $attributes, $gpf_data, $images );                               
+		unset( $item, $terms_array, $postmeta, $attributes, $gpf_data, $images );  
+                
 		return $product;
 	}
         public function hf_currency_formatter($price){

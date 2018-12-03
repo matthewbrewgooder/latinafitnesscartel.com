@@ -10,7 +10,6 @@ class WF_ProdImpExpCsv_Exporter {
 	 */
 	public static function do_export( $post_type = 'product' ) {
 		global $wpdb;
-
 		$export_limit                = ! empty( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 999999999;
 		$export_count                = 0;
 		$limit                       = 100;
@@ -31,9 +30,11 @@ class WF_ProdImpExpCsv_Exporter {
 		if ( function_exists( 'apache_setenv' ) )
 			@apache_setenv( 'no-gzip', 1 );
 		@ini_set('zlib.output_compression', 0);
-		@ob_clean();
-		
-		
+
+		//@ob_clean();
+        @ob_end_clean(); // to prevent issue that unidentified characters when opened in MS-Excel in some servers
+
+				
 			header( 'Content-Type: text/csv; charset=UTF-8' );
 			header( 'Content-Disposition: attachment; filename=woocommerce-product-export.csv' );
 			header( 'Pragma: no-cache' );

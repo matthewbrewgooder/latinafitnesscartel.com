@@ -3,8 +3,8 @@ Contributors: webtoffee
 Donate link: https://www.webtoffee.com/plugins/
 Tags: woocommerce product import, woocommerce import products, woocommerce export products, export woocommerce products, import products into woocommerce
 Requires at least: 3.0.1
-Tested up to: 4.9.7
-Stable tag: 1.4.6
+Tested up to: 4.9.8
+Stable tag: 1.5.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -20,7 +20,7 @@ Are you trying to import products into WooCommerce store or export WooCommerce p
 
 &#128312; Export Simple Products  in to a CSV file.
 &#128312; Import Simple Products in CSV format in to WooCommerce Store.
-&#128312; Tested OK with WooCommerce 3.4.4.
+&#128312; Tested OK with WooCommerce 3.5.1.
 
 
 Highlights: WooCommerce Product Export, WooCommerce Product CSV Import Suite, WooCommerce bulk product upload, WooCommerce import products with images, import amazon products to WooCommerce, Export Products to xls. Pro Version supports both Simple and Variable products.
@@ -54,7 +54,7 @@ Product Import Export Plugin for WooCommerce is the leading tool for Woocommerce
 <li> &#9989; Excellent Support for setting it up!</li>
 </ul>
 
-Please visit <a rel="nofollow" href="https://www.xadapter.com/product/product-import-export-plugin-for-woocommerce/">Product Import Export Plugin for WooCommerce</a> for more details
+Please visit <a rel="nofollow" href="https://www.webtoffee.com/product/product-import-export-woocommerce/">Product Import Export Plugin for WooCommerce</a> for more details
 
 </blockquote>
 
@@ -97,7 +97,7 @@ WooCommerce variable product import allows you to import all variations of the p
 
 = WooCommerce import products with images =
 
-A WooCommerce product importer which supports 'woocommerce import products with images' feature is common requirement. The premium plugin has this feature buit into it.
+The plugin facilitates easy import of images related to a product. When the products are imported using the plugin, the first image related to a product in the image column of the CSV file is taken as its featured image. If there are multiple images in the same column, the image(s) after the first one is taken as the gallery images of the product.
 
 
 = Other features =
@@ -117,9 +117,9 @@ Supports WooCommerce Google Product Feed Plugin.
 Supports Scheduled Cron Job.
 
 
-= About XAdapter.com =
+= About wbtoffee.com =
 
-XAdapter creates quality WordPress/WooCommerce plugins that are easy to use and customize. We are proud to have thousands of customers actively using our plugins across the globe.
+WebToffee creates quality WordPress/WooCommerce plugins that are easy to use and customize. We are proud to have thousands of customers actively using our plugins across the globe.
 
 
 == Installation ==
@@ -143,6 +143,28 @@ Yes. You can import or export product images along with other details
 3. Premium Export Settings Screen
 
 == Changelog ==
+
+
+= 1.5.1 =
+* Content update.
+
+= 1.5.0 =
+* Tested OK with WC 3.5.1
+* Image importing process optimised
+* Bug fix.
+
+= 1.4.9 =
+* Tested OK with WC 3.5.0
+* Compatible with new meta '_low_stock_amount' which introduced in WC3.5.0
+
+= 1.4.8 =
+* Tested OK with WC 3.4.6
+* Content Update.
+
+= 1.4.7 =
+* Tested OK with WC 3.4.5
+* Review link added in footer.
+* Bug fix.
 
 = 1.4.6 =
 * Tested OK with WC 3.4.4
@@ -244,7 +266,5 @@ Yes. You can import or export product images along with other details
 
 == Upgrade Notice ==
 
-= 1.4.6 =
-* Tested OK with WC 3.4.4
-* Bug fix:importing date.
-* Bug fix:- JSON_HEX_APOS on ajax post.
+= 1.5.1 =
+* Content update.

@@ -521,7 +521,6 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 		    }
 		    fclose( $handle );
 		}
-		
 		$mapping_from_db  = get_option( 'wf_prod_csv_imp_exp_mapping');
 		$saved_mapping = null;
 		$saved_evaluation = null;
@@ -1070,11 +1069,18 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 					$image_basenames[] = basename( $image );
 
 				// Loop attachments already attached to the product
-				$attachments = get_posts( 'post_parent=' . $post_id . '&post_type=attachment&fields=ids&post_mime_type=image&numberposts=-1' );
-
+				//$attachments = get_posts( 'post_parent=' . $post_id . '&post_type=attachment&fields=ids&post_mime_type=image&numberposts=-1' );
+                                
+                                $processing_product_object = wc_get_product($post_id);
+                                $attachments = $processing_product_object->get_gallery_attachment_ids();
+                                $post_thumbnail_id = get_post_thumbnail_id($post_id);
+                                if(isset($post_thumbnail_id)&& !empty($post_thumbnail_id)){
+                                    $attachments[]=$post_thumbnail_id;
+                                }
+                                
 				foreach ( $attachments as $attachment_key => $attachment ) {
 
-					$attachment_url 		= wp_get_attachment_url( $attachment );
+					$attachment_url 	= wp_get_attachment_url( $attachment );
 					$attachment_basename 	= basename( $attachment_url );
 
 					// Don't import existing images
@@ -1248,6 +1254,17 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 
 		} else*/
 		if ( strstr( $url, site_url() ) ) {
+                    
+                        $image_id = $this->wt_get_image_id_by_url($url);
+                        if($image_id){
+                            $attachment_id = $image_id;
+
+                            $this->hf_log_data_change('csv-import', sprintf(__('> > (Image already in the site)Inserted image attachment "%s"', 'wf_csv_import_export'), $url));
+
+                            $this->attachments[] = $attachment_id;
+
+                            return $attachment_id;
+                        }
 			$abs_url 	= str_replace( trailingslashit( site_url() ), trailingslashit( ABSPATH ), urldecode($url) );
 			$new_name 	= wp_unique_filename( $upload_dir['path'], basename( urldecode($url) ) );
 			$new_url 	= trailingslashit( $upload_dir['path'] ) . $new_name;
@@ -1257,7 +1274,7 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 			}
 		}
 
-		if ( ! strstr( $url, 'http' ) ) {
+		if ( ! strstr( $url, 'http' ) ) {  // if not a url
 
 			// Local file
 			$attachment_file 	= trailingslashit( $upload_dir['basedir'] ) . 'product_images/' . $url;
@@ -1275,6 +1292,15 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 					$post['post_mime_type'] = $info['type'];
 				else
 					return new WP_Error( 'attachment_processing_error', __('Invalid file type', 'wordpress-importer') );
+                                
+                                
+                                $image_id = $this->wt_get_image_id_by_url($attachment_url);
+                                if($image_id){
+                                    $attachment_id = $image_id;
+                                    $this->hf_log_data_change('csv-import', sprintf(__('> > (Image already in the site)Inserted image attachment "%s"', 'wf_csv_import_export'), $url));
+                                    $this->attachments[] = $attachment_id;
+                                    return $attachment_id;
+                                }
 
 				$post['guid'] = $attachment_url;
 
@@ -1318,6 +1344,12 @@ class WF_ProdImpExpCsv_Product_Import extends WP_Importer {
 
 		return $attachment_id;
 	}
+        
+        function wt_get_image_id_by_url($image_url) {
+            global $wpdb;
+            $attachment = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $image_url));
+            return isset($attachment[0])&& $attachment[0]>0 ? $attachment[0]:'';
+        }
 
 	/**
 	 * Attempt to download a remote file attachment

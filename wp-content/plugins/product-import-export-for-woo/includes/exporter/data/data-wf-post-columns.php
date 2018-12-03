@@ -47,5 +47,7 @@ return apply_filters('woocommerce_csv_product_post_columns', array(
 	// Virtual products
 	'_product_url'		=> 'product_url',
 	'_button_text'		=> 'button_text',
-
+    
+        '_sold_individually'    => 'sold_individually',
+        '_low_stock_amount'     => 'low_stock_amount'
 ) );

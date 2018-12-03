@@ -46,6 +46,8 @@ return array(
                 'tax:product_cat' =>  'Product Categories | Product related categories',
                 'tax:product_tag' => 'Product Tags | Product related tags',
                 'tax:product_shipping_class' => 'Product Shipping Class | Allow you to group similar products for shipping',
+                'sold_individually'=>'Sold Individually | Allow one of this item to be bought in a single order',
+                'low_stock_amount'=>'Low stock threshold | Low stock threshold',
     
     
 );
