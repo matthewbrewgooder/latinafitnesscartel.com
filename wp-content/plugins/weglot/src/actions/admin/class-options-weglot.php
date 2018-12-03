@@ -34,7 +34,8 @@ class Options_Weglot implements Hooks_Interface_Weglot {
 	public function hooks() {
 		add_action( 'admin_init', [ $this, 'weglot_options_init' ] );
 		$api_key = $this->option_services->get_option( 'api_key' );
-		if ( empty( $api_key ) ) {
+		if ( empty( $api_key ) && ( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'weglot-settings' ) === false) ) { // phpcs:ignore
+			//We don't show the notice if we are on Weglot configuration
 			add_action( 'admin_notices', [ '\WeglotWP\Notices\No_Configuration_Weglot', 'admin_notice' ] );
 		}
 	}
@@ -80,16 +81,15 @@ class Options_Weglot implements Hooks_Interface_Weglot {
 		switch ( $tab ) {
 			case Helper_Tabs_Admin_Weglot::SETTINGS:
 				$new_options = $this->sanitize_options_settings( $new_options, $options );
+
+
 				if ( $options_bdd['has_first_settings'] ) {
 					$new_options['has_first_settings']      = false;
 					$new_options['show_box_first_settings'] = true;
+				} else {
+					$new_options = $this->sanitize_options_appearance( $new_options, $options );
+					$new_options = $this->sanitize_options_advanced( $new_options, $options );
 				}
-				break;
-			case Helper_Tabs_Admin_Weglot::APPEARANCE:
-				$new_options = $this->sanitize_options_appearance( $new_options, $options );
-				break;
-			case Helper_Tabs_Admin_Weglot::ADVANCED:
-				$new_options = $this->sanitize_options_advanced( $new_options, $options );
 				break;
 		}
 
@@ -98,12 +98,13 @@ class Options_Weglot implements Hooks_Interface_Weglot {
 
 	/**
 	 * @since 2.0
+	 * @version 2.0.6
 	 * @param array $new_options
 	 * @param array $options
 	 * @return array
 	 */
 	public function sanitize_options_settings( $new_options, $options ) {
-		$user_info        = $this->user_api_services->get_user_info();
+		$user_info        = $this->user_api_services->get_user_info( $new_options['api_key'] );
 		$plans            = $this->user_api_services->get_plans();
 		$options_bdd      = $this->option_services->get_options();
 

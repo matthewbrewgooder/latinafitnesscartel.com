@@ -4,9 +4,9 @@
 .weglot__choice__language{
 	border-bottom:1px solid #eee;
 	margin:5px 0px;
-	&--english{
+	&--local{
 		border-width:50px;
-		color:#757575;
+		color: #a6a6a6;
 		display:block;
 	}
 }
@@ -87,6 +87,10 @@ input[type='text'],textarea {
 	margin: 2px 0 0;
 }
 
+.weglot-select-original {
+	height : 36px!important;
+	margin : 0;
+}
 .original-select,
 #type_flags {
 	padding: 8px;
@@ -129,6 +133,7 @@ input[type="text"], .wg-input-textarea {
 		padding:0 10px;
 	}
 	display:flex;
+	margin-left: 15px;
 	.wrap {
 		flex: 4;
 	}
@@ -175,7 +180,8 @@ input[type="text"], .wg-input-textarea {
 
 	.selectize-control,
 	input[type="text"],
-	.wg-input-textarea {
+	.wg-input-textarea,
+	.weglot-select-original{
 		width : 100%;
 		max-width: 300px;
 	}
@@ -211,6 +217,13 @@ input[type="text"], .wg-input-textarea {
 
 	.question-icon {
 		font-size : 17px;
+	}
+
+	.form-table {
+		margin-bottom: 50px;
+	}
+	.country-selector {
+		z-index: 1!important;
 	}
 
 }

@@ -41,7 +41,7 @@ class Request_Url_Service_Weglot {
 		return new Url(
 			$url,
 			$this->option_services->get_option( 'original_language' ),
-			$this->option_services->get_option( 'destination_language' ),
+			weglot_get_destination_languages(),
 			$this->get_home_wordpress_directory()
 		);
 	}
@@ -63,7 +63,7 @@ class Request_Url_Service_Weglot {
 		$this->weglot_url = new Url(
 			$this->get_full_url(),
 			$this->option_services->get_option( 'original_language' ),
-			$this->option_services->get_option( 'destination_language' ),
+			weglot_get_destination_languages(),
 			$this->get_home_wordpress_directory()
 		);
 
@@ -75,10 +75,11 @@ class Request_Url_Service_Weglot {
 	/**
 	 * Get request URL in process
 	 * @since 2.0
+	 * @param boolean $cache
 	 * @return \Weglot\Util\Url
 	 */
-	public function get_weglot_url() {
-		if ( null === $this->weglot_url ) {
+	public function get_weglot_url( $cache = true ) {
+		if ( null === $this->weglot_url || ! $cache ) {
 			$this->init_weglot_url();
 		}
 
@@ -88,14 +89,21 @@ class Request_Url_Service_Weglot {
 	/**
 	 * Abstraction of \Weglot\Util\Url
 	 * @since 2.0
+	 * @param boolean $with_filter
 	 * @return string
 	 */
-	public function get_current_language() {
+	public function get_current_language( $with_filter = true ) {
 		if ( wp_doing_ajax() && isset( $_SERVER['HTTP_REFERER'] ) ) { //phpcs:ignore
-			return $this->create_url_object( $_SERVER['HTTP_REFERER'] )->detectCurrentLanguage(); //phpcs:ignore
+			$current_language = $this->create_url_object( $_SERVER['HTTP_REFERER'] )->detectCurrentLanguage(); //phpcs:ignore
+		} else {
+			$current_language = $this->get_weglot_url()->detectCurrentLanguage();
 		}
 
-		return $this->get_weglot_url()->detectCurrentLanguage();
+		if ( $with_filter ) {
+			return apply_filters( 'weglot_translate_current_language', $current_language );
+		}
+
+		return $current_language;
 	}
 
 	/**
@@ -117,6 +125,16 @@ class Request_Url_Service_Weglot {
 	 */
 	public function get_full_url( $use_forwarded_host = false ) {
 		return Server::fullUrl($_SERVER, $use_forwarded_host); //phpcs:ignore
+	}
+
+	/**
+	 * @since 2.0.4
+	 *
+	 * @return string
+	 * @param mixed $use_forwarded_host
+	 */
+	public function get_full_url_no_language( $use_forwarded_host = false ) {
+		return $this->create_url_object( $this->get_full_url() )->getForLanguage( weglot_get_original_language() );
 	}
 
 
@@ -197,6 +215,7 @@ class Request_Url_Service_Weglot {
 		foreach ( $list_regex as $regex ) {
 			$str           = $this->escape_slash( $regex );
 			$prepare_regex = sprintf( '/%s/', $str );
+
 			if ( preg_match( $prepare_regex, $url ) === 1 ) {
 				return apply_filters( 'weglot_is_eligible_url', false, $url );
 			}

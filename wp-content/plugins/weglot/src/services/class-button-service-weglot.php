@@ -48,9 +48,9 @@ class Button_Service_Weglot {
 			$add_class .= ' weglot-invert';
 		}
 
-		$destination_language             = $options['destination_language'];
+		$destination_language             = weglot_get_destination_languages();
 		$original_language                = $options['original_language'];
-		$current_language                 = $this->request_url_services->get_current_language();
+		$current_language                 = $this->request_url_services->get_current_language( false );
 
 		$flag_class                       = $with_flags ? 'weglot-flags ' : '';
 		$flag_class .= '0' === $type_flags ? '' : 'flag-' . $type_flags . ' ';
@@ -64,11 +64,21 @@ class Button_Service_Weglot {
 
 		if ( ! empty( $original_language ) && ! empty( $destination_language ) ) {
 			$name = '';
-			if ( $with_name ) {
-				$name = ( $is_fullname ) ? $languages[ $current_language ]->getLocalName() : strtoupper( $languages[ $current_language ]->getIso639() );
+			if ( isset( $languages[ $current_language ] ) ) {
+				$current_language_entry = $languages[ $current_language ];
+			} else {
+				$current_language_entry = apply_filters( 'weglot_current_language_entry', $current_language );
+				if ( $current_language_entry === $current_language ) {
+					throw new \Exception( 'You need create a language entry' );
+				}
 			}
 
-			$button_html .= sprintf( '<input id="weglot_choice" type="checkbox" name="menu"/><label for="weglot_choice" class="wgcurrent wg-li %s" data-code-language="%s"><span>%s</span></label>', $flag_class . $current_language, $languages[ $current_language ]->getIso639(), $name );
+			if ( $with_name ) {
+				$name = ( $is_fullname ) ? $current_language_entry->getLocalName() : strtoupper( $current_language_entry->getIso639() );
+			}
+
+			$uniqId = 'wg' . uniqid( strtotime( 'now' ) ) . rand( 1, 1000 );
+			$button_html .= sprintf( '<input id="%s" class="weglot_choice" type="checkbox" name="menu"/><label for="%s" class="wgcurrent wg-li %s" data-code-language="%s"><span>%s</span></label>', $uniqId, $uniqId, $flag_class . $current_language, $current_language_entry->getIso639(), $name );
 
 			$button_html .= '<ul>';
 
@@ -79,16 +89,26 @@ class Button_Service_Weglot {
 					continue;
 				}
 
+				if ( isset( $languages[ $key_code ] ) ) {
+					$current_language_entry = $languages[ $key_code ];
+				} else {
+					$current_language_entry = apply_filters( 'weglot_current_language_entry', $key_code );
+					if ( $current_language_entry === $key_code ) {
+						throw new \Exception( 'You need create a language entry' );
+					}
+				}
+
 				$name = '';
 				if ( $with_name ) {
-					$name = ( $is_fullname ) ? $languages[ $key_code ]->getLocalName() : strtoupper( $languages[ $key_code ]->getIso639() );
+					$name = ( $is_fullname ) ? $current_language_entry->getLocalName() : strtoupper( $current_language_entry->getIso639() );
 				}
 
 				$button_html .= sprintf( '<li class="wg-li %s" data-code-language="%s">', $flag_class . $key_code, $key_code );
 
-				$link_button = $weglot_url->getForLanguage( $key_code );
+				$link_button = apply_filters( 'weglot_link_language', $weglot_url->getForLanguage( $key_code ), $key_code );
 
-				if ( weglot_has_auto_redirect() && strpos( $link_button, 'no_lredirect' ) === false && ( is_home() || is_front_page() ) ) {
+				$link_button = preg_replace('#\?no_lredirect=true$#', '', $link_button); // Remove ending "?no_lredirect=true"
+				if ( weglot_has_auto_redirect() && strpos( $link_button, 'no_lredirect' ) === false && ( is_home() || is_front_page() ) && $key_code === $original_language) {
 					$link_button .= '?no_lredirect=true';
 				}
 

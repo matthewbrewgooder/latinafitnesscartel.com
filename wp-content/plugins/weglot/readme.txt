@@ -4,7 +4,7 @@ Tags: translate,translation,language,multilingual,bilingual,international,locali
 Requires at least: 4.5
 Tested up to: 4.9
 Requires PHP: 5.4
-Stable tag: 2.0.3
+Stable tag: 2.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,7 +44,7 @@ Weglot Translate offers professional support to premium users to help them trans
 
 Can I migrate from WPML or Polylang to Weglot Translate?
 
-Yes, you can easily migrate to Weglot Translate. Simply deactivate WPML or Polylang to only have one multilingual plugin. Then start using Weglot normally. If you need to import some translations contact us directly at support@weglot.com
+Yes, you can easily migrate to Weglot Translate. Simply deactivate WPML or Polylang to only have one multilingual plugin. Then start using Weglot Translate normally. If you need to import some translations contact us directly at support@weglot.com
 
 Does Weglot Translate provide support?
 
@@ -83,7 +83,7 @@ Weglot Translate is easy to set up:
 = Is Weglot Translate free? =
 Weglot Translate is a freemium plugin: it is free for small websites (under 2000 words) with one translation language. If you need more, you can upgrade. Details of our pricing can be found [here](https://weglot.com/pricing)
 
-In any case, you can try Weglot free for 10 days.
+In any case, you can try Weglot Translate free for 10 days.
 = Edit my translations =
 With Weglot Translate, you can modify translations in "Translations" in your Weglot [account here](https://dashboard.weglot.com/translations/). If you change a translation, it's automatically saved and displayed on your website.
 = The translations I edited are not displayed on my website. =
@@ -151,6 +151,27 @@ Weglot Translate is easy to set up:
 See changelog for upgrade changes.
 
 == Changelog ==
+
+= 2.0.7 (31/08/2018) =
+* Bugfix: Ajax load media library
+* Improve choice original and destination language
+
+= 2.0.6 (29/08/2018) =
+* Add DOM checker to translate button value and data-value attribute
+* Update Weglot Translate setting page
+* Bugfix : email translation
+* Bugfix : external link with quickpay
+* Prevent auto redirect on homepage translate
+
+= 2.0.5 (09/08/2018) =
+* Bugfix : Fatal error if use weglot menu custom
+
+= 2.0.4 (09/08/2018) =
+* Bugfix : lost password email on WooCommerce
+* Bugfix : translate custom login page
+* Bugfix : uniq id on each button selector
+* Bugfix : no translate image on a href html tag with wp-content/uploads src
+* Bugfix : admin-ajax url
 
 = 2.0.3 (27/07/2018) =
 * Bugfix : Hide shortcode on non translatable URL

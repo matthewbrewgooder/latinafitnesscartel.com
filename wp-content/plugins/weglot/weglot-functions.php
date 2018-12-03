@@ -54,12 +54,12 @@ function weglot_get_current_language() {
 }
 
 /**
- * Get destination language
+ * Get destination language with filters
  * @since 2.0
  * @return string
  */
-function weglot_get_destination_language() {
-	return weglot_get_option( 'destination_language' );
+function weglot_get_destination_languages() {
+	return Context_Weglot::weglot_get_context()->get_service( 'Option_Service_Weglot' )->get_destination_languages();
 }
 
 /**
@@ -175,4 +175,40 @@ function weglot_has_auto_redirect() {
 function weglot_current_url_is_eligible() {
 	$full_url = weglot_get_current_full_url();
 	return weglot_is_eligible_url( $full_url );
+}
+
+
+/**
+ * @since 2.0.4
+ * @return string
+ */
+function weglot_get_full_url_no_language() {
+	return weglot_get_request_url_service()->get_full_url_no_language();
+}
+
+/**
+ * @since 2.0.4
+ * @param string $url
+ * @return Weglot\Util\Url
+ */
+function weglot_create_url_object( $url ) {
+	return weglot_get_request_url_service()->create_url_object( $url );
+}
+
+/**
+ * @since 2.0.4
+ * @return int
+ */
+function weglot_get_postid_from_url() {
+	return url_to_postid( weglot_get_full_url_no_language() );
+}
+
+/**
+ * Get option destination language
+ * @since 2.0
+ * @version 2.0.4
+ * @return array
+ */
+function weglot_get_destination_language() {
+	return weglot_get_option( 'destination_language' );
 }

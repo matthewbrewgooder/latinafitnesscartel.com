@@ -36,28 +36,34 @@ const init_admin_button_preview = function () {
 			old_type_flags = new_type_flags;
 		});
 
-		const set_fullname_language = () => {
+		const set_languages = () => {
 			const label_language = weglot_desination_languages.find(
 				(itm) => itm.code === $(".country-selector label").data("code-language")
 			);
+			const is_fullname = $("#is_fullname").is(":checked");
 
-			$(".country-selector label a, .country-selector label span").text(label_language.local);
+			const label = is_fullname ? label_language.local : label_language.code.toUpperCase();
+
+			$(".country-selector label a, .country-selector label span").text(label);
 
 			$(".country-selector li").each((key, itm) => {
 				const li_language = weglot_desination_languages.find(
 					(lang) => lang.code === $(itm).data("code-language")
 				);
 
-				$(itm).find("a").text(li_language.local);
+				const label = is_fullname ? li_language.local : li_language.code.toUpperCase();
+
+				$(itm)
+					.find("a")
+					.text(label);
 			})
 		}
 
 		// Change with name
 		$("#with_name").on("change", function(e) {
-			if(e.target.checked){
-				set_fullname_language()
-			}
-			else{
+			if (e.target.checked) {
+				set_languages();
+			} else {
 				$(".country-selector label a, .country-selector label span").text("");
 				$(".country-selector li a, .country-selector li span").each(
 					(key, itm) => {
@@ -70,9 +76,12 @@ const init_admin_button_preview = function () {
 
 
 		$("#is_fullname").on("change", function(e){
-			if (e.target.checked) {
-				set_fullname_language();
+			if ( !$("#with_name").is(":checked") ) {
+				return
+			}
 
+			if (e.target.checked) {
+				set_languages();
 			}
 			else {
 				const label_language = weglot_desination_languages.find(itm => itm.code === $(".country-selector label").data("code-language"));

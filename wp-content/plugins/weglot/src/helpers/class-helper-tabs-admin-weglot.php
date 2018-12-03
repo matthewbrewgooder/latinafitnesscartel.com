@@ -21,17 +21,7 @@ abstract class Helper_Tabs_Admin_Weglot {
 	/**
 	 * @var string
 	 */
-	const ADVANCED = 'advanced';
-
-	/**
-	 * @var string
-	 */
 	const STATUS = 'status';
-
-	/**
-	 * @var string
-	 */
-	const APPEARANCE = 'appearance';
 
 	/**
 	 * Get tabs constant
@@ -43,9 +33,7 @@ abstract class Helper_Tabs_Admin_Weglot {
 	public static function get_tabs() {
 		return [
 			self::SETTINGS,
-			self::ADVANCED,
 			self::STATUS,
-			self::APPEARANCE,
 		];
 	}
 
@@ -54,21 +42,13 @@ abstract class Helper_Tabs_Admin_Weglot {
 	 * @static
 	 * @since 2.0
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public static function get_full_tabs() {
 		return [
 			self::SETTINGS => [
-				'title' => __( 'General', 'weglot' ),
+				'title' => __( 'Settings', 'weglot' ),
 				'url'   => get_admin_url( null, sprintf( 'admin.php?page=%s&tab=%s', Helper_Pages_Weglot::SETTINGS, self::SETTINGS ) ),
-			],
-			self::APPEARANCE   => [
-				'title' => __( 'Language button', 'weglot' ),
-				'url'   => get_admin_url( null, sprintf( 'admin.php?page=%s&tab=%s', Helper_Pages_Weglot::SETTINGS, self::APPEARANCE ) ),
-			],
-			self::ADVANCED => [
-				'title' => __( 'Advanced', 'weglot' ),
-				'url'   => get_admin_url( null, sprintf( 'admin.php?page=%s&tab=%s', Helper_Pages_Weglot::SETTINGS, self::ADVANCED ) ),
 			],
 			self::STATUS   => [
 				'title' => __( 'Status', 'weglot' ),

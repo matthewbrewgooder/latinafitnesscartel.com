@@ -110,8 +110,11 @@ class Email_Translate_Weglot implements Hooks_Interface_Weglot {
 		$config             = new ServerConfigProvider();
 		$client             = new Client( $api_key );
 		$parser             = new Parser( $client, $config, $exclude_blocks );
-
 		$translated_subject = $parser->translate( '<p>' . $args['subject'] . '</p>', $current_and_original_language['original'], $current_and_original_language['current'] ); //phpcs:ignore
+
+		$config             = new ServerConfigProvider();
+		$client             = new Client( $api_key );
+		$parser             = new Parser( $client, $config, $exclude_blocks );
 		$translated_message = $parser->translate( $args['message'], $current_and_original_language['original'], $current_and_original_language['current'] ); //phpcs:ignore
 
 		return [

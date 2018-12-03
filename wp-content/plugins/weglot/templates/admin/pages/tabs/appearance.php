@@ -280,13 +280,13 @@ $options_available = [
 	<tr valign="top">
 		<th scope="row"><?php esc_html_e( 'In menu?', 'weglot' ); ?></th>
 		<td>
-			<?php esc_html_e( 'You can place the button in a menu area. Go to Appearance -> Menus and drag and drop the Weglot Translate Custom link where you want.', 'weglot' ); ?>
+			<?php echo __( 'You can place the button in a menu area. Go to <a href="' . admin_url( 'nav-menus.php' ) . '">Appearance -> Menus</a> and drag and drop the Weglot Translate Custom link where you want.', 'weglot' ); ?>
 		</td>
 	</tr>
 	<tr valign="top">
 		<th scope="row"><?php esc_html_e( 'As a widget?', 'weglot' ); ?></th>
 		<td>
-			<?php esc_html_e( 'You can place the button in a widget area. Go to Appearance -> Widgets and drag and drop the Weglot Translate widget where you want.', 'weglot' ); ?>
+			<?php echo __( 'You can place the button in a widget area. Go to <a href="' . admin_url( 'widgets.php' ) . '">Appearance -> Widgets</a> and drag and drop the Weglot Translate widget where you want.', 'weglot' ); ?>
 		</td>
 	</tr>
 	<tr valign="top">
@@ -303,3 +303,7 @@ $options_available = [
 	</tr>
 </table>
 
+<template id="li-button-tpl">
+	<li class="wg-li {CLASSES} {CODE_LANGUAGE}" data-code-language="{CODE_LANGUAGE}">
+		<a href="#">{LABEL_LANGUAGE}</a></li>
+</template>

@@ -11,20 +11,19 @@ use WeglotWP\Helpers\Helper_Tabs_Admin_Weglot;
 
 <div id="wrap-weglot">
 	<div class="wrap">
-		<?php include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/nav.php'; ?>
-
 		<form method="post" id="mainform" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>">
 			<?php
+
+
 			switch ( $this->tab_active ) {
 				case Helper_Tabs_Admin_Weglot::SETTINGS:
 				default:
 					include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/tabs/settings.php';
-					break;
-				case Helper_Tabs_Admin_Weglot::APPEARANCE:
-					include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/tabs/appearance.php';
-					break;
-				case Helper_Tabs_Admin_Weglot::ADVANCED:
-					include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/tabs/advanced.php';
+					if ( ! $this->options['has_first_settings'] ) {
+						include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/tabs/appearance.php';
+						include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/tabs/advanced.php';
+					}
+
 					break;
 				case Helper_Tabs_Admin_Weglot::STATUS:
 					include_once WEGLOT_TEMPLATES_ADMIN_PAGES . '/tabs/status.php';
@@ -38,7 +37,8 @@ use WeglotWP\Helpers\Helper_Tabs_Admin_Weglot;
 			?>
 			<input type="hidden" name="tab" value="<?php echo esc_attr( $this->tab_active ); ?>">
 		</form>
-
+		<?php if ( ! $this->options['has_first_settings'] ) {
+				?>
 		<hr>
 		<a target="_blank" href="http://wordpress.org/support/view/plugin-reviews/weglot?rate=5#postform">
 			<?php esc_html_e( 'Love Weglot? Give us 5 stars on WordPress.org :)', 'weglot' ); ?>
@@ -50,9 +50,10 @@ use WeglotWP\Helpers\Helper_Tabs_Admin_Weglot;
 				echo sprintf( esc_html__( 'If you need any help, you can contact us via email us at support@weglot.com.', 'weglot' ), '<a href="https://weglot.com/" target="_blank">', '</a>' );
 				echo  '<br>';
 				// translators: 1 HTML Tag, 2 HTML Tag
-				echo sprintf( esc_html__( 'You can also check our %1$sFAQ%2$s', 'weglot' ), '<a href="http://support.weglot.com/" target="_blank">', '</a>' );
-			?>
+				echo sprintf( esc_html__( 'You can also check our %1$sFAQ%2$s', 'weglot' ), '<a href="http://support.weglot.com/" target="_blank">', '</a>' ); ?>
 		</p>
+        <?php
+			} ?>
 	</div>
 	<?php
 	if ( ! $this->options['has_first_settings'] ) :
@@ -66,7 +67,7 @@ use WeglotWP\Helpers\Helper_Tabs_Admin_Weglot;
 				</a>
 			</div>
 		</div>
-		<?php   
+		<?php
 	endif;
 	?>
 </div>

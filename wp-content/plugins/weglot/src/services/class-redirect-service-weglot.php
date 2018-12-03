@@ -57,11 +57,11 @@ class Redirect_Service_Weglot {
 		}
 
 		$server_lang           = substr( $_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2 ); //phpcs:ignore
-		$destination_languages = $this->option_services->get_option( 'destination_language' );
+		$destination_languages = weglot_get_destination_languages();
 
 		if (
-			in_array( $server_lang, $destination_languages, true ) &&
-			$server_lang !== $this->request_url_services->get_current_language()
+			in_array( $server_lang, $destination_languages ) && // phpcs:ignore
+			weglot_get_original_language() === $this->request_url_services->get_current_language()
 		) {
 			$url_auto_redirect = apply_filters( 'weglot_url_auto_redirect', $this->request_url_services->get_weglot_url()->getForLanguage( $server_lang ) );
 			wp_safe_redirect( $url_auto_redirect );

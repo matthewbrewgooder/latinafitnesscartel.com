@@ -12,16 +12,10 @@ use Weglot\Util\Text;
  * Dom Checkers
  *
  * @since 2.0
+ * @version 2.0.6
  */
 class Dom_Checkers_Service_Weglot {
-	/**
-	 * @since 2.0
-	 */
-	public function __construct() {
-		$this->dom_checkers = [
-			'\WeglotWP\Domcheckers\Meta_Twitter',
-		];
-	}
+
 	/**
 	 * @since 2.0
 	 * @return array

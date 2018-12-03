@@ -6,8 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-
-
 /**
  * @since 2.0
  */
@@ -38,14 +36,19 @@ class User_Api_Service_Weglot {
 	 * @since 2.0
 	 * @version 2.0.1
 	 * @return array
+	 * @param null|string $api_key
 	 */
-	public function get_user_info() {
+	public function get_user_info( $api_key = null ) {
 		if ( null !== $this->user_info ) {
 			return $this->user_info;
 		}
 
+		if ( null === $api_key ) {
+			$api_key = weglot_get_api_key();
+		}
+
 		try {
-			$results   = $this->do_request( self::API_BASE_OLD . 'user-info?api_key=' . weglot_get_api_key(), null );
+			$results   = $this->do_request( self::API_BASE_OLD . 'user-info?api_key=' . $api_key, null );
 			$json      = json_decode( $results, true );
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
 				throw new \Exception( 'Unknown error with Weglot Api (0001) : ' . json_last_error() );
@@ -67,9 +70,34 @@ class User_Api_Service_Weglot {
 			} else {
 				throw new \Exception( 'Unknown error with Weglot Api (0002) : ' . $json );
 			}
-		} catch ( \Exception $e) {
-			return ['allowed' => true];
+		} catch ( \Exception $e ) {
+			return [
+				'allowed' => true,
+			];
 		}
+	}
+
+	/**
+	 * @since 2.0.6
+	 *
+	 * @return int
+	 */
+	public function get_limit_destination_language() {
+		$user_info        = $this->get_user_info();
+		$plans            = $this->get_plans();
+		$limit            = 1000;
+		if (
+			$user_info['plan'] <= 0 ||
+			in_array( $user_info['plan'], $plans['starter_free']['ids'] ) // phpcs:ignore
+		) {
+			$limit = $plans['starter_free']['limit_language'];
+		} elseif (
+			in_array( $user_info['plan'], $plans['business']['ids'] ) // phpcs:ignore
+		) {
+			$limit = $plans['business']['limit_language'];
+		}
+
+		return $limit;
 	}
 
 	/**

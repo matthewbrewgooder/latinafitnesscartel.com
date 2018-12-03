@@ -1,5 +1,5 @@
 const init_prevent_save_form = function () {
-
+/* TODO : remove file
 	const $ = jQuery
 
 	const execute = () => {
@@ -25,6 +25,7 @@ const init_prevent_save_form = function () {
 	document.addEventListener('DOMContentLoaded', () => {
 		execute();
 	})
+*/
 }
 
 export default init_prevent_save_form;

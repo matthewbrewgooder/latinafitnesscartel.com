@@ -13,7 +13,7 @@ const init_admin_button_preview = function () {
 			}
 			$.getJSON(
 				"https://weglot.com/api/user-info?api_key=" + key,
-				function(data) {
+				(data) => {
 					$(".weglot-keyres").remove();
 					$("#api_key").after(
 						'<span class="weglot-keyres weglot-okkey"></span>'
@@ -22,6 +22,12 @@ const init_admin_button_preview = function () {
 						"disabled",
 						false
 					);
+
+					const evt = new CustomEvent("weglotCheckApi", {
+						detail: data
+					});
+
+					window.dispatchEvent(evt);
 				}
 			).fail(function() {
 				$(".weglot-keyres").remove();

@@ -49,8 +49,8 @@ class Replace_Link_Service_Weglot {
 			foreach ( array_reverse( $this->multisite_service->get_list_of_network_path() ) as $np ) {
 				if ( strlen( $np ) > 2 && strpos( $url_translated, $np ) !== false ) {
 					$url_translated = str_replace(
-						str_replace( '//', '/', '/' . $current_language . $np . '/'),
-                        str_replace( '//', '/', $np . '/' . $current_language . '/'),
+						str_replace( '//', '/', '/' . $current_language . $np . '/' ),
+						str_replace( '//', '/', $np . '/' . $current_language . '/' ),
 						$url_translated
 					);
 				}
@@ -63,6 +63,7 @@ class Replace_Link_Service_Weglot {
 	/**
 	 * Replace href in <a>
 	 * @since 2.0
+	 * @version 2.0.4
 	 * @param string $translated_page
 	 * @param string $current_url
 	 * @param string $quote1
@@ -72,7 +73,12 @@ class Replace_Link_Service_Weglot {
 	 * @return string
 	 */
 	public function replace_a( $translated_page, $current_url, $quote1, $quote2, $sometags = null, $sometags2 = null ) {
-		$current_language  = weglot_get_current_language();
+		$current_language     = weglot_get_current_language();
+		$no_replace_condition = apply_filters( 'weglot_no_replace_a_href', 'wp-content/uploads' );
+
+		if ( strpos( $current_url, $no_replace_condition ) !== false ) {
+			return $translated_page;
+		}
 
 		$translated_page = preg_replace( '/<a' . preg_quote( $sometags, '/' ) . 'href=' . preg_quote( $quote1 . $current_url . $quote2, '/' ) . preg_quote( $sometags2, '/' ) . '>/', '<a' . $sometags . 'href=' . $quote1 . $this->replace_url( $current_url, $current_language ) . $quote2 . $sometags2 . '>', $translated_page );
 

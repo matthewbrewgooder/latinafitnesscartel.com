@@ -82,6 +82,16 @@ class Option_Service_Weglot {
 	}
 
 	/**
+	 * @since 2.0.4
+	 * @return array
+	 */
+	public function get_destination_languages() {
+		$destination_languages     = $this->get_option( 'destination_language' );
+
+		return apply_filters( 'weglot_destination_languages', $destination_languages );
+	}
+
+	/**
 	 * @since 2.0
 	 * @return array
 	 */
