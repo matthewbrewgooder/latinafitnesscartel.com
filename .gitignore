@@ -2,3 +2,4 @@
 .DS_Store
 wp-content/uploads/.gitignore
 .htaccess
+wp-config.php
